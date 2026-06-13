@@ -28,6 +28,33 @@ const FACTUALITY_COLORS: Record<Factuality, { fg: string; bg: string }> = {
   baixa: { fg: "#b03030", bg: "#fdecec" },
 };
 
+const FACTUALITY_LEVELS: { key: Factuality; dot: string; meaning: string; examples: string }[] = [
+  {
+    key: "muito-alta",
+    dot: "#1b7a43",
+    meaning: "Apuração rigorosa, uso consistente de fontes primárias e raras correções. Separa claramente fato de opinião.",
+    examples: "Ex.: Nexo, BBC Brasil, Agência Pública",
+  },
+  {
+    key: "alta",
+    dot: "#2a7d6f",
+    meaning: "Boa apuração e checagem, com erros ocasionais que costumam ser corrigidos. Padrão jornalístico consolidado.",
+    examples: "Ex.: Folha, Estadão, O Globo",
+  },
+  {
+    key: "mista",
+    dot: "#a07000",
+    meaning: "Mistura informação verificada com opinião forte, sensacionalismo ou erros mais frequentes. Exige leitura mais atenta.",
+    examples: "Ex.: Veja, Jovem Pan",
+  },
+  {
+    key: "baixa",
+    dot: "#b03030",
+    meaning: "Apuração fraca, conteúdo frequentemente enganoso ou não verificado. Confiabilidade factual baixa.",
+    examples: "—",
+  },
+];
+
 const OUTLETS_BY_SPECTRUM = SPECTRUM_META.map((meta) => ({
   ...meta,
   outlets: OUTLETS.filter((o) => o.spectrum === meta.key),
@@ -194,6 +221,82 @@ export default function Metodologia() {
                       fontFamily: "'Inter', sans-serif",
                     }}>
                       {step.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Factuality / credibility explanation */}
+        <div style={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #e5e3df",
+          borderRadius: "6px",
+          padding: "clamp(16px, 4vw, 28px)",
+          marginBottom: "20px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+            <ShieldCheck size={18} style={{ color: "#2a7d6f" }} />
+            <h2 style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "20px", fontWeight: 700, color: "#111111",
+            }}>
+              Credibilidade Factual (o selo "Fact.")
+            </h2>
+          </div>
+          <p style={{
+            fontSize: "13.5px", color: "#666666", fontFamily: "'Inter', sans-serif",
+            marginBottom: "8px", lineHeight: 1.6,
+          }}>
+            Ao lado de cada veículo você verá um selo de <strong>credibilidade factual</strong> (abreviado como <strong>"Fact."</strong> em alguns lugares). Ele indica o <strong>rigor da apuração</strong> daquele veículo — o quão confiável e bem checada é a informação que ele publica.
+          </p>
+          <p style={{
+            fontSize: "13.5px", color: "#666666", fontFamily: "'Inter', sans-serif",
+            marginBottom: "18px", lineHeight: 1.6,
+          }}>
+            É uma medida <strong>independente do viés político</strong>: um veículo pode ser de esquerda ou de direita e, ainda assim, ter factualidade alta — ou baixa. São duas perguntas diferentes: <em>"de que lado?"</em> (viés) e <em>"o quão confiável?"</em> (factualidade). Usamos 4 níveis:
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {FACTUALITY_LEVELS.map((level) => {
+              const c = FACTUALITY_COLORS[level.key];
+              return (
+                <div key={level.key} style={{
+                  display: "flex", alignItems: "flex-start", gap: "12px",
+                  padding: "12px 14px",
+                  backgroundColor: c.bg,
+                  border: `1px solid ${c.fg}30`,
+                  borderRadius: "6px",
+                }}>
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: "5px",
+                    flexShrink: 0, marginTop: "1px",
+                  }}>
+                    <span style={{
+                      width: "10px", height: "10px", borderRadius: "50%",
+                      backgroundColor: level.dot, display: "inline-block",
+                    }} />
+                    <span style={{
+                      fontSize: "12px", fontWeight: 700, color: c.fg,
+                      fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap",
+                    }}>
+                      {FACTUALITY_LABELS[level.key]}
+                    </span>
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontSize: "13px", color: "#555555", lineHeight: 1.55,
+                      fontFamily: "'Inter', sans-serif", margin: 0,
+                    }}>
+                      {level.meaning}
+                    </p>
+                    <p style={{
+                      fontSize: "11.5px", color: "#999999", lineHeight: 1.4,
+                      fontFamily: "'Inter', sans-serif", margin: "3px 0 0",
+                    }}>
+                      {level.examples}
                     </p>
                   </div>
                 </div>
