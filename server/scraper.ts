@@ -2,52 +2,7 @@ import axios from "axios";
 import { getDb } from "./db";
 import { articles, mediaOutlets, scrapeJobs } from "../drizzle/schema";
 import { eq, and, isNull } from "drizzle-orm";
-
-// RSS feed URLs for Brazilian media outlets
-const RSS_FEEDS: Record<string, string[]> = {
-  g1: [
-    "https://g1.globo.com/rss/g1/",
-    "https://g1.globo.com/rss/g1/politica/",
-    "https://g1.globo.com/rss/g1/economia/",
-  ],
-  folha: [
-    "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml",
-    "https://feeds.folha.uol.com.br/poder/rss091.xml",
-    "https://feeds.folha.uol.com.br/mercado/rss091.xml",
-  ],
-  oglobo: [
-    "https://oglobo.globo.com/rss.xml",
-    "https://oglobo.globo.com/politica/rss.xml",
-  ],
-  uol: [
-    "https://rss.uol.com.br/feed/noticias.xml",
-    "https://rss.uol.com.br/feed/politica.xml",
-    "https://rss.uol.com.br/feed/economia.xml",
-  ],
-  estadao: [
-    "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/politica/",
-    "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/economia/",
-    "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/brasil/",
-    "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/internacional/",
-    "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/esportes/",
-  ],
-  r7: [
-    "https://noticias.r7.com/feed.xml",
-    "https://noticias.r7.com/brasil/feed.xml",
-  ],
-  cartacapital: [
-    "https://www.cartacapital.com.br/feed/",
-    "https://www.cartacapital.com.br/politica/feed/",
-  ],
-  veja: [
-    "https://veja.abril.com.br/feed/",
-    "https://veja.abril.com.br/politica/feed/",
-  ],
-  brasildefato: [
-    "https://www.brasildefato.com.br/rss.xml",
-    "https://www.brasildefato.com.br/nacional/rss.xml",
-  ],
-};
+import { RSS_FEEDS } from "./outlets.config";
 
 interface RSSItem {
   title: string;
@@ -93,12 +48,12 @@ async function fetchRSSFeed(url: string): Promise<RSSItem[]> {
     const xml = response.data as string;
     const items: RSSItem[] = [];
 
-    // Simple XML parsing without external library
-    const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
-    let itemMatch;
+    // Handle both RSS (<item>) and Atom (<entry>) entries without an external lib.
+    const entryRegex = /<(item|entry)[\s>]([\s\S]*?)<\/\1>/gi;
+    let entryMatch;
 
-    while ((itemMatch = itemRegex.exec(xml)) !== null) {
-      const itemXml = itemMatch[1];
+    while ((entryMatch = entryRegex.exec(xml)) !== null) {
+      const itemXml = entryMatch[2];
 
       const getTag = (tag: string): string => {
         const match = itemXml.match(
@@ -109,17 +64,23 @@ async function fetchRSSFeed(url: string): Promise<RSSItem[]> {
 
       const getAttr = (tag: string, attr: string): string => {
         const match = itemXml.match(
-          new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["'][^>]*>`, "i")
+          new RegExp(`<${tag}[^>]*\\b${attr}=["']([^"']+)["'][^>]*>`, "i")
         );
         return match ? match[1].trim() : "";
       };
 
       const title = getTag("title");
-      const link = getTag("link") || getTag("guid");
+      // RSS uses <link>url</link>; Atom uses <link href="url"/>.
+      const link = getTag("link") || getAttr("link", "href") || getTag("guid");
       if (!title || !link) continue;
 
-      const description = getTag("description") || getTag("summary");
-      const pubDate = getTag("pubDate") || getTag("published") || getTag("dc:date");
+      const description =
+        getTag("description") || getTag("summary") || getTag("content");
+      const pubDate =
+        getTag("pubDate") ||
+        getTag("published") ||
+        getTag("updated") ||
+        getTag("dc:date");
       const enclosureUrl = getAttr("enclosure", "url");
       const mediaUrl =
         getAttr("media:content", "url") || getAttr("media:thumbnail", "url");

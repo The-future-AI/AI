@@ -15,6 +15,13 @@
       "when": 1781298555482,
       "tag": "0001_short_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1781391365659,
+      "tag": "0002_windy_stark_industries",
+      "breakpoints": true
     }
   ]
 }

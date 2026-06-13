@@ -8,13 +8,12 @@ import {
 } from "../drizzle/schema";
 import { eq, and, isNull, inArray, desc } from "drizzle-orm";
 import { scrapeAllOutlets } from "./scraper";
+import {
+  computeSpectrumStats,
+  detectBlindspot,
+  type Spectrum,
+} from "./analysis";
 
-type Spectrum =
-  | "esquerda"
-  | "centro-esquerda"
-  | "centro"
-  | "centro-direita"
-  | "direita";
 type Category =
   | "politica"
   | "economia"
@@ -239,61 +238,6 @@ Responda APENAS com JSON válido:
       articleIndices: [i],
     }));
   }
-}
-
-function computeSpectrumStats(spectrums: (Spectrum | null)[]) {
-  const counts = {
-    esquerda: 0,
-    "centro-esquerda": 0,
-    centro: 0,
-    "centro-direita": 0,
-    direita: 0,
-  };
-
-  for (const s of spectrums) {
-    if (s && s in counts) {
-      counts[s as keyof typeof counts]++;
-    }
-  }
-
-  const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  if (total === 0) return { counts, pcts: { ...counts }, total: 0 };
-
-  const pcts = {
-    esquerda: Math.round((counts.esquerda / total) * 100),
-    "centro-esquerda": Math.round((counts["centro-esquerda"] / total) * 100),
-    centro: Math.round((counts.centro / total) * 100),
-    "centro-direita": Math.round((counts["centro-direita"] / total) * 100),
-    direita: Math.round((counts.direita / total) * 100),
-  };
-
-  return { counts, pcts, total };
-}
-
-function detectBlindspot(pcts: Record<string, number>): {
-  isBlindspot: boolean;
-  spectrum?: string;
-} {
-  const BLINDSPOT_THRESHOLD = 70;
-
-  // Check if one side dominates
-  const leftTotal = (pcts.esquerda || 0) + (pcts["centro-esquerda"] || 0);
-  const rightTotal = (pcts["centro-direita"] || 0) + (pcts.direita || 0);
-
-  if (leftTotal >= BLINDSPOT_THRESHOLD) {
-    return { isBlindspot: true, spectrum: "esquerda" };
-  }
-  if (rightTotal >= BLINDSPOT_THRESHOLD) {
-    return { isBlindspot: true, spectrum: "direita" };
-  }
-  if ((pcts.esquerda || 0) >= BLINDSPOT_THRESHOLD) {
-    return { isBlindspot: true, spectrum: "esquerda" };
-  }
-  if ((pcts.direita || 0) >= BLINDSPOT_THRESHOLD) {
-    return { isBlindspot: true, spectrum: "direita" };
-  }
-
-  return { isBlindspot: false };
 }
 
 export async function runPipeline(): Promise<{

@@ -63,3 +63,17 @@
 - [x] Link "Metodologia" adicionado ao navbar (desktop e mobile)
 - [x] Busca no navbar navega para /busca com query na URL
 - [x] Corrigir FAQ de Metodologia: R7/Jovem Pan sem RSS público estável (sub-representação da direita)
+
+## Transparência e Robustez (Sprint 5)
+- [x] Credibilidade factual por veículo (muito-alta/alta/mista/baixa), separada do viés
+- [x] Transparência de propriedade: grupo controlador + ano de fundação por veículo
+- [x] Schema: colunas factuality/ownership/foundedYear/description + migration aditiva
+- [x] Fonte única de verdade dos veículos (server/outlets.config.ts) usada por scraper, seed e frontend
+- [x] Script de seed idempotente (pnpm db:seed) — antes os veículos só existiam no banco da nuvem
+- [x] Expansão para 17 veículos, incl. mais à direita (Gazeta do Povo, Jovem Pan, Poder360) e alta factualidade (BBC Brasil, Nexo)
+- [x] Scraper passa a entender feeds Atom (<entry>, <link href>) além de RSS
+- [x] Lógica de viés/ponto cego extraída para módulo puro testável (server/analysis.ts); testes agora cobrem o código real
+- [x] Inclinação líquida (overallLean) e rótulo de viés agregado
+- [x] Metodologia data-driven: badges de factualidade + propriedade + fundação por veículo
+- [x] Detalhe do tópico: badge de factualidade por fonte
+- [x] README do projeto e .env.example; remoção de segredos do repositório

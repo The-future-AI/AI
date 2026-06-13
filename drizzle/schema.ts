@@ -58,6 +58,24 @@ export const mediaOutlets = mysqlTable("media_outlets", {
     "centro-direita",
     "direita",
   ]).notNull(),
+  /**
+   * Credibilidade factual do veículo (estilo Ground.news / Media Bias-Fact-Check).
+   * Mede o quão confiável é a apuração — separado do viés político.
+   */
+  factuality: mysqlEnum("factuality", [
+    "muito-alta",
+    "alta",
+    "mista",
+    "baixa",
+  ])
+    .default("alta")
+    .notNull(),
+  /** Grupo controlador / proprietário do veículo (transparência de propriedade). */
+  ownership: varchar("ownership", { length: 256 }),
+  /** Ano de fundação do veículo. */
+  foundedYear: int("foundedYear"),
+  /** Descrição curta da linha editorial. */
+  description: text("description"),
   country: varchar("country", { length: 8 }).default("BR").notNull(),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

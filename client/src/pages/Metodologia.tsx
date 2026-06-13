@@ -1,6 +1,7 @@
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, Scale, Eye, BarChart2, RefreshCw, AlertCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Scale, Eye, BarChart2, RefreshCw, AlertCircle, ShieldCheck } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { OUTLETS, type Spectrum, type Factuality } from "../../../server/outlets.config";
 
 const SPECTRUM_COLORS: Record<string, string> = {
   esquerda: "#c0392b",
@@ -18,54 +19,32 @@ const SPECTRUM_BG: Record<string, string> = {
   direita: "#e3f0ff",
 };
 
-const OUTLETS_BY_SPECTRUM = [
-  {
-    key: "esquerda",
-    label: "Esquerda",
-    description: "Veículos com linha editorial progressista, foco em movimentos sociais e crítica ao conservadorismo.",
-    outlets: [
-      { name: "Brasil de Fato", url: "https://www.brasildefato.com.br", desc: "Jornal popular ligado a movimentos sociais" },
-      { name: "Carta Capital", url: "https://www.cartacapital.com.br", desc: "Revista de análise política com viés progressista" },
-    ],
-  },
-  {
-    key: "centro-esquerda",
-    label: "Centro-Esquerda",
-    description: "Veículos de grande circulação com linha editorial liberal-progressista, defesa da democracia e jornalismo investigativo.",
-    outlets: [
-      { name: "Folha de S.Paulo", url: "https://www.folha.uol.com.br", desc: "Um dos maiores jornais do Brasil, linha liberal-progressista" },
-      { name: "O Globo", url: "https://oglobo.globo.com", desc: "Jornal carioca de grande circulação nacional" },
-      { name: "Agência Pública", url: "https://apublica.org", desc: "Agência de jornalismo investigativo independente" },
-    ],
-  },
-  {
-    key: "centro",
-    label: "Centro",
-    description: "Veículos de cobertura ampla e generalista, com foco em notícias factuais e entretenimento.",
-    outlets: [
-      { name: "G1 / Globo News", url: "https://g1.globo.com", desc: "Portal de notícias do Grupo Globo, cobertura factual ampla" },
-      { name: "UOL", url: "https://www.uol.com.br", desc: "Portal de internet com ampla cobertura jornalística" },
-    ],
-  },
-  {
-    key: "centro-direita",
-    label: "Centro-Direita",
-    description: "Veículos com linha editorial liberal-conservadora, defesa do mercado e reformas econômicas.",
-    outlets: [
-      { name: "Estadão", url: "https://www.estadao.com.br", desc: "O Estado de S. Paulo, jornal centenário com linha liberal-conservadora" },
-      { name: "Veja", url: "https://veja.abril.com.br", desc: "Maior revista semanal do Brasil, linha liberal-conservadora" },
-    ],
-  },
-  {
-    key: "direita",
-    label: "Direita",
-    description: "Veículos com linha editorial conservadora, defesa de valores tradicionais e crítica ao progressismo.",
-    outlets: [
-      { name: "R7 / Record", url: "https://r7.com", desc: "Portal da TV Record, linha conservadora (sem RSS público — em processo de integração)" },
-      { name: "Jovem Pan", url: "https://jovempan.com.br", desc: "Rádio e canal de TV com linha conservadora (em processo de integração)" },
-    ],
-  },
+const SPECTRUM_META: { key: Spectrum; label: string; description: string }[] = [
+  { key: "esquerda", label: "Esquerda", description: "Veículos com linha editorial progressista, foco em movimentos sociais e crítica ao conservadorismo." },
+  { key: "centro-esquerda", label: "Centro-Esquerda", description: "Veículos de grande circulação com linha liberal-progressista, defesa da democracia e jornalismo investigativo." },
+  { key: "centro", label: "Centro", description: "Veículos de cobertura ampla e generalista, com foco em notícias factuais." },
+  { key: "centro-direita", label: "Centro-Direita", description: "Veículos com linha liberal-conservadora, defesa do mercado e reformas econômicas." },
+  { key: "direita", label: "Direita", description: "Veículos com linha editorial conservadora, defesa de valores tradicionais e crítica ao progressismo." },
 ];
+
+const FACTUALITY_LABELS: Record<Factuality, string> = {
+  "muito-alta": "Factualidade muito alta",
+  alta: "Factualidade alta",
+  mista: "Factualidade mista",
+  baixa: "Factualidade baixa",
+};
+
+const FACTUALITY_COLORS: Record<Factuality, { fg: string; bg: string }> = {
+  "muito-alta": { fg: "#1b7a43", bg: "#e7f6ec" },
+  alta: { fg: "#2a7d6f", bg: "#e6f5f1" },
+  mista: { fg: "#a07000", bg: "#fff7e0" },
+  baixa: { fg: "#b03030", bg: "#fdecec" },
+};
+
+const OUTLETS_BY_SPECTRUM = SPECTRUM_META.map((meta) => ({
+  ...meta,
+  outlets: OUTLETS.filter((o) => o.spectrum === meta.key),
+}));
 
 const METHODOLOGY_STEPS = [
   {
@@ -89,8 +68,13 @@ const METHODOLOGY_STEPS = [
     description: "Para cada tópico, calculamos a proporção de cobertura por espectro político. Se 3 veículos cobriram um assunto — 1 de esquerda, 1 de centro e 1 de direita — cada espectro recebe 33%. Os percentuais refletem quem cobriu, não o conteúdo.",
   },
   {
+    icon: ShieldCheck,
+    title: "5. Credibilidade Factual",
+    description: "Além do viés político, cada veículo recebe uma nota de credibilidade factual (muito alta, alta, mista ou baixa), que mede o rigor da apuração — independentemente da posição política. Viés e factualidade são duas dimensões distintas.",
+  },
+  {
     icon: Eye,
-    title: "5. Detecção de Ponto Cego",
+    title: "6. Detecção de Ponto Cego",
     description: "Um tópico é marcado como \"Ponto Cego\" quando 70% ou mais da cobertura vem de um único lado do espectro político. Isso indica que o assunto foi ignorado pelo outro lado, criando uma \"bolha informacional\".",
   },
 ];
@@ -277,42 +261,63 @@ export default function Metodologia() {
                   {group.description}
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {group.outlets.map((outlet) => (
-                    <div key={outlet.name} style={{
-                      display: "flex", alignItems: "flex-start", gap: "8px",
-                      padding: "8px 12px",
-                      backgroundColor: SPECTRUM_BG[group.key],
-                      borderRadius: "4px",
-                    }}>
-                      <div style={{
-                        width: "7px", height: "7px", borderRadius: "50%",
-                        backgroundColor: SPECTRUM_COLORS[group.key],
-                        flexShrink: 0, marginTop: "4px",
-                      }} />
-                      <div>
-                        <a
-                          href={outlet.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            fontSize: "13px", fontWeight: 600,
-                            color: "#111111", fontFamily: "'Inter', sans-serif",
-                            textDecoration: "none",
-                          }}
-                          onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
-                          onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
-                        >
-                          {outlet.name}
-                        </a>
-                        <p style={{
-                          fontSize: "12px", color: "#888888",
-                          fontFamily: "'Inter', sans-serif", margin: "2px 0 0",
-                        }}>
-                          {outlet.desc}
-                        </p>
+                  {group.outlets.map((outlet) => {
+                    const fact = FACTUALITY_COLORS[outlet.factuality];
+                    return (
+                      <div key={outlet.name} style={{
+                        display: "flex", alignItems: "flex-start", gap: "8px",
+                        padding: "10px 12px",
+                        backgroundColor: SPECTRUM_BG[group.key],
+                        borderRadius: "4px",
+                      }}>
+                        <div style={{
+                          width: "7px", height: "7px", borderRadius: "50%",
+                          backgroundColor: SPECTRUM_COLORS[group.key],
+                          flexShrink: 0, marginTop: "5px",
+                        }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                            <a
+                              href={outlet.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                fontSize: "13px", fontWeight: 600,
+                                color: "#111111", fontFamily: "'Inter', sans-serif",
+                                textDecoration: "none",
+                              }}
+                              onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
+                              onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
+                            >
+                              {outlet.name}
+                            </a>
+                            <span style={{
+                              display: "inline-flex", alignItems: "center", gap: "3px",
+                              padding: "1px 7px", borderRadius: "3px",
+                              fontSize: "10px", fontWeight: 700,
+                              fontFamily: "'Inter', sans-serif",
+                              color: fact.fg, backgroundColor: fact.bg,
+                            }}>
+                              <ShieldCheck size={10} />
+                              {FACTUALITY_LABELS[outlet.factuality]}
+                            </span>
+                          </div>
+                          <p style={{
+                            fontSize: "12px", color: "#888888",
+                            fontFamily: "'Inter', sans-serif", margin: "3px 0 0",
+                          }}>
+                            {outlet.description}
+                          </p>
+                          <p style={{
+                            fontSize: "11.5px", color: "#aaaaaa",
+                            fontFamily: "'Inter', sans-serif", margin: "3px 0 0",
+                          }}>
+                            Propriedade: {outlet.ownership} · Fundado em {outlet.foundedYear}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -380,7 +385,11 @@ export default function Metodologia() {
           {[
             {
               q: "Por que alguns veículos não aparecem?",
-              a: "Monitoramos apenas veículos que disponibilizam feeds RSS públicos e acessíveis. Alguns veículos conservadores relevantes, como R7 e Jovem Pan, não possuem RSS público estável e por isso ainda não estão integrados. Isso pode criar uma sub-representação do espectro da direita nos dados atuais. Estamos trabalhando em alternativas de coleta para esses veículos.",
+              a: "Monitoramos veículos que disponibilizam feeds RSS públicos. A cobertura abrange hoje 17 veículos em todo o espectro — de Brasil de Fato e The Intercept à esquerda até Gazeta do Povo e Jovem Pan à direita —, buscando equilíbrio entre os lados. Sugestões de novos veículos com RSS público são bem-vindas.",
+            },
+            {
+              q: "Qual a diferença entre viés e credibilidade factual?",
+              a: "São duas medidas independentes. O viés indica a posição editorial no espectro político (esquerda a direita). A credibilidade factual indica o rigor da apuração — um veículo pode ter viés acentuado e ainda assim alta factualidade, e vice-versa. Por isso exibimos as duas separadamente na classificação dos veículos.",
             },
             {
               q: "Com que frequência as notícias são atualizadas?",
@@ -398,9 +407,9 @@ export default function Metodologia() {
               q: "A classificação política é definitiva?",
               a: "Não. A classificação é uma simplificação analítica baseada na linha editorial predominante de cada veículo. Veículos publicam conteúdos variados e podem divergir de sua classificação geral. Revisamos as classificações periodicamente.",
             },
-          ].map((item, i) => (
+          ].map((item, i, arr) => (
             <div key={i} style={{
-              borderBottom: i < 4 ? "1px solid #f0ede8" : "none",
+              borderBottom: i < arr.length - 1 ? "1px solid #f0ede8" : "none",
               paddingBottom: "16px",
               marginBottom: "16px",
             }}>
