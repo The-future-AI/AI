@@ -5,50 +5,19 @@ import { trpc } from "@/lib/trpc";
 import { Navbar } from "@/components/Navbar";
 import SpectrumBar from "@/components/SpectrumBar";
 import type { SpectrumData } from "@/components/SpectrumBar";
+import { OutletLogo } from "@/components/OutletLogo";
+import {
+  SPECTRUM_ORDER,
+  SPECTRUM_COLORS,
+  SPECTRUM_BG,
+  SPECTRUM_LABELS,
+  SPECTRUM_LABELS_FULL,
+  CATEGORY_LABELS,
+} from "@/lib/spectrum";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  politica: "Política",
-  economia: "Economia",
-  internacional: "Internacional",
-  esporte: "Esporte",
-  tecnologia: "Tecnologia",
-  geral: "Geral",
-};
-
-const SPECTRUM_ORDER = ["esquerda", "centro-esquerda", "centro", "centro-direita", "direita"];
-const SPECTRUM_LABELS: Record<string, string> = {
-  esquerda: "Esquerda",
-  "centro-esquerda": "C-Esquerda",
-  centro: "Centro",
-  "centro-direita": "C-Direita",
-  direita: "Direita",
-};
-const SPECTRUM_LABELS_FULL: Record<string, string> = {
-  esquerda: "Esquerda",
-  "centro-esquerda": "Centro-Esquerda",
-  centro: "Centro",
-  "centro-direita": "Centro-Direita",
-  direita: "Direita",
-};
-
-const SPECTRUM_COLORS: Record<string, string> = {
-  esquerda: "#c0392b",
-  "centro-esquerda": "#e05c3a",
-  centro: "#888888",
-  "centro-direita": "#2980b9",
-  direita: "#1565c0",
-};
-
-const SPECTRUM_BG: Record<string, string> = {
-  esquerda: "#fdf0ee",
-  "centro-esquerda": "#fef3ef",
-  centro: "#f5f5f5",
-  "centro-direita": "#e8f4fd",
-  direita: "#e3f0ff",
-};
 
 /* ── 5-box spectrum legend (Ground.news style) ─────────────────────────────── */
 function SpectrumLegend({ data, sourcesBySpectrum }: {
@@ -193,6 +162,7 @@ function ArticleCard({ article }: {
     spectrum?: string | null;
     publishedAt: Date | string;
     outletName?: string | null;
+    outletUrl?: string | null;
     outletFactuality?: string | null;
   };
 }) {
@@ -221,18 +191,26 @@ function ArticleCard({ article }: {
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Outlet name + spectrum badge + time */}
+        {/* Outlet logo + name + spectrum badge + time */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
           {article.outletName && (
-            <span style={{
-              fontSize: "12px",
-              fontWeight: 700,
-              color: "#111111",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontFamily: "'Inter', sans-serif",
-            }}>
-              {article.outletName}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <OutletLogo
+                name={article.outletName}
+                siteUrl={article.outletUrl}
+                spectrumColor={borderColor}
+                size={18}
+              />
+              <span style={{
+                fontSize: "12px",
+                fontWeight: 700,
+                color: "#111111",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontFamily: "'Inter', sans-serif",
+              }}>
+                {article.outletName}
+              </span>
             </span>
           )}
           <SpectrumBadge spectrum={spectrum} />
@@ -296,6 +274,13 @@ export default function TopicDetail() {
   const topicId = parseInt(params.id || "0");
   const [activeFilter, setActiveFilter] = useState<string>("todos");
   const { data, isLoading, error } = trpc.topics.byId.useQuery({ id: topicId });
+
+  useDocumentMeta({
+    title: data?.topic?.title,
+    description: data?.topic?.summary ?? undefined,
+    image: data?.topic?.imageUrl,
+    type: "article",
+  });
 
   if (isLoading) {
     return (

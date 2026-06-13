@@ -2,41 +2,22 @@ import { Link } from "wouter";
 import { Eye } from "lucide-react";
 import SpectrumBar, { getDominantSpectrum } from "./SpectrumBar";
 import type { SpectrumData } from "./SpectrumBar";
+import { OutletLogo } from "./OutletLogo";
+import {
+  SPECTRUM_ORDER,
+  SPECTRUM_COLORS,
+  SPECTRUM_LABELS,
+  SPECTRUM_BG,
+  CATEGORY_LABELS,
+} from "@/lib/spectrum";
+import { OUTLETS } from "../../../server/outlets.config";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// ─── Spectrum config ──────────────────────────────────────────────────────────
-const SPECTRUM_ORDER = ["esquerda", "centro-esquerda", "centro", "centro-direita", "direita"] as const;
-const SPECTRUM_COLORS: Record<string, string> = {
-  esquerda:          "#c0392b",
-  "centro-esquerda": "#e05c3a",
-  centro:            "#888888",
-  "centro-direita":  "#2980b9",
-  direita:           "#1565c0",
-};
-const SPECTRUM_LABELS: Record<string, string> = {
-  esquerda:          "Esquerda",
-  "centro-esquerda": "C-Esquerda",
-  centro:            "Centro",
-  "centro-direita":  "C-Direita",
-  direita:           "Direita",
-};
-const SPECTRUM_BG: Record<string, string> = {
-  esquerda:          "#fdf0ee",
-  "centro-esquerda": "#fef3ef",
-  centro:            "#f5f5f5",
-  "centro-direita":  "#e8f4fd",
-  direita:           "#e3f0ff",
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  politica: "Política",
-  economia: "Economia",
-  internacional: "Internacional",
-  esporte: "Esporte",
-  tecnologia: "Tecnologia",
-  geral: "Geral",
-};
+// Lookup nome do veículo → site, para exibir o logo nas fontes.
+const OUTLET_URL_BY_NAME: Record<string, string> = Object.fromEntries(
+  OUTLETS.map((o) => [o.name, o.url]),
+);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TopicCardTopic {
@@ -116,13 +97,29 @@ function SourcesRow({ spectrumData, sourcesBySpectrum }: {
               }} />
               {pct}% {label}
             </span>
-            {/* Source names */}
+            {/* Source logos + names */}
             {sources.length > 0 && (
-              <span style={{ color: "#777777", fontSize: "10.5px", lineHeight: 1.3 }}>
-                {sources.slice(0, 3).join(", ")}
-                {sources.length > 3 && (
-                  <span style={{ color: "#aaaaaa" }}> +{sources.length - 3}</span>
-                )}
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "5px",
+                color: "#777777", fontSize: "10.5px", lineHeight: 1.3, flexWrap: "wrap",
+              }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                  {sources.slice(0, 4).map((srcName) => (
+                    <OutletLogo
+                      key={srcName}
+                      name={srcName}
+                      siteUrl={OUTLET_URL_BY_NAME[srcName]}
+                      spectrumColor={color}
+                      size={14}
+                    />
+                  ))}
+                </span>
+                <span>
+                  {sources.slice(0, 3).join(", ")}
+                  {sources.length > 3 && (
+                    <span style={{ color: "#aaaaaa" }}> +{sources.length - 3}</span>
+                  )}
+                </span>
               </span>
             )}
           </div>

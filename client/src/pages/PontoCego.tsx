@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Navbar } from "@/components/Navbar";
 import SpectrumBar from "@/components/SpectrumBar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 
 const SPECTRUM_ORDER = ["direita", "centro-direita", "centro", "centro-esquerda", "esquerda"];
 
@@ -46,6 +47,11 @@ const BLINDSPOT_INFO: Record<string, { label: string; description: string; barCo
 };
 
 export default function PontoCego() {
+  useDocumentMeta({
+    title: "Ponto Cego",
+    description:
+      "Notícias cobertas predominantemente por um lado do espectro político e ignoradas pelo outro — os pontos cegos da imprensa brasileira.",
+  });
   const { data: blindspotTopics, isLoading } = trpc.topics.blindspot.useQuery({ limit: 30 });
 
   const grouped = (blindspotTopics || []).reduce(

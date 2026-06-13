@@ -77,3 +77,10 @@
 - [x] Metodologia data-driven: badges de factualidade + propriedade + fundação por veículo
 - [x] Detalhe do tópico: badge de factualidade por fonte
 - [x] README do projeto e .env.example; remoção de segredos do repositório
+
+## Frontend — Logos, Acessibilidade, Consistência e SEO (Sprint 6)
+- [x] Item 1: logos dos veículos (componente OutletLogo via favicon, com fallback de inicial colorida) em Home, detalhe do tópico, metodologia e cards
+- [x] Item 3: acessibilidade do viés — abreviações nas barras (lg) + aria-label descrevendo a distribuição (não depende só de cor / daltonismo)
+- [x] Item 5/7: tokens do espectro centralizados em client/src/lib/spectrum.ts; removidas as cópias em SpectrumBar, TopicCard, TopicDetail, Metodologia, Busca e Home
+- [x] Item 6: Home deixa de ter lista de veículos hardcoded (e desatualizada); passa a ler de server/outlets.config.ts
+- [x] Item 4: SEO — meta tags Open Graph/Twitter padrão no index.html + hook useDocumentMeta para título e tags dinâmicas por página/tópico

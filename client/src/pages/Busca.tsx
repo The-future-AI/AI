@@ -6,41 +6,17 @@ import { Navbar } from "@/components/Navbar";
 import { Link } from "wouter";
 import SpectrumBar from "@/components/SpectrumBar";
 import type { SpectrumData } from "@/components/SpectrumBar";
+import {
+  SPECTRUM_ORDER,
+  SPECTRUM_LABELS,
+  SPECTRUM_COLORS,
+  SPECTRUM_BG,
+  CATEGORY_LABELS,
+} from "@/lib/spectrum";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-const SPECTRUM_ORDER = ["esquerda", "centro-esquerda", "centro", "centro-direita", "direita"];
-const SPECTRUM_LABELS: Record<string, string> = {
-  esquerda: "Esquerda",
-  "centro-esquerda": "C-Esquerda",
-  centro: "Centro",
-  "centro-direita": "C-Direita",
-  direita: "Direita",
-};
-const SPECTRUM_COLORS: Record<string, string> = {
-  esquerda: "#c0392b",
-  "centro-esquerda": "#e05c3a",
-  centro: "#888888",
-  "centro-direita": "#2980b9",
-  direita: "#1565c0",
-};
-const SPECTRUM_BG: Record<string, string> = {
-  esquerda: "#fdf0ee",
-  "centro-esquerda": "#fef3ef",
-  centro: "#f5f5f5",
-  "centro-direita": "#e8f4fd",
-  direita: "#e3f0ff",
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  politica: "Política",
-  economia: "Economia",
-  internacional: "Internacional",
-  esporte: "Esporte",
-  tecnologia: "Tecnologia",
-  geral: "Geral",
-};
 
 function getDominantSpectrum(topic: {
   leftPct: number; centerLeftPct: number; centerPct: number;
@@ -68,6 +44,11 @@ export default function Busca() {
   const [activeSpectrum, setActiveSpectrum] = useState(initialSpectrum);
   const [page, setPage] = useState(0);
   const LIMIT = 20;
+
+  useDocumentMeta({
+    title: query ? `Busca: ${query}` : "Busca",
+    description: "Busque notícias e veja a distribuição de cobertura pelo espectro político.",
+  });
 
   // Update URL when filters change
   useEffect(() => {

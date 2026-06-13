@@ -1,23 +1,10 @@
 import { Link } from "wouter";
 import { ArrowLeft, BookOpen, Scale, Eye, BarChart2, RefreshCw, AlertCircle, ShieldCheck } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { OutletLogo } from "@/components/OutletLogo";
+import { useDocumentMeta } from "@/hooks/useDocumentMeta";
+import { SPECTRUM_COLORS, SPECTRUM_BG } from "@/lib/spectrum";
 import { OUTLETS, type Spectrum, type Factuality } from "../../../server/outlets.config";
-
-const SPECTRUM_COLORS: Record<string, string> = {
-  esquerda: "#c0392b",
-  "centro-esquerda": "#e05c3a",
-  centro: "#888888",
-  "centro-direita": "#2980b9",
-  direita: "#1565c0",
-};
-
-const SPECTRUM_BG: Record<string, string> = {
-  esquerda: "#fdf0ee",
-  "centro-esquerda": "#fef3ef",
-  centro: "#f5f5f5",
-  "centro-direita": "#e8f4fd",
-  direita: "#e3f0ff",
-};
 
 const SPECTRUM_META: { key: Spectrum; label: string; description: string }[] = [
   { key: "esquerda", label: "Esquerda", description: "Veículos com linha editorial progressista, foco em movimentos sociais e crítica ao conservadorismo." },
@@ -80,6 +67,11 @@ const METHODOLOGY_STEPS = [
 ];
 
 export default function Metodologia() {
+  useDocumentMeta({
+    title: "Metodologia",
+    description:
+      "Como classificamos o viés político e a credibilidade factual dos veículos de comunicação brasileiros, e como detectamos pontos cegos na cobertura.",
+  });
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-page)" }}>
       <Navbar />
@@ -270,11 +262,14 @@ export default function Metodologia() {
                         backgroundColor: SPECTRUM_BG[group.key],
                         borderRadius: "4px",
                       }}>
-                        <div style={{
-                          width: "7px", height: "7px", borderRadius: "50%",
-                          backgroundColor: SPECTRUM_COLORS[group.key],
-                          flexShrink: 0, marginTop: "5px",
-                        }} />
+                        <div style={{ marginTop: "2px" }}>
+                          <OutletLogo
+                            name={outlet.name}
+                            siteUrl={outlet.url}
+                            spectrumColor={SPECTRUM_COLORS[group.key]}
+                            size={22}
+                          />
+                        </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                             <a

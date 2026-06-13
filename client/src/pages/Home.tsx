@@ -8,6 +8,10 @@ import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDominantSpectrum } from "@/components/SpectrumBar";
 import type { SpectrumData } from "@/components/SpectrumBar";
+import { OutletLogo } from "@/components/OutletLogo";
+import { useDocumentMeta } from "@/hooks/useDocumentMeta";
+import { SPECTRUM_COLORS, SPECTRUM_LABELS } from "@/lib/spectrum";
+import { OUTLETS } from "../../../server/outlets.config";
 
 /* ── Skeletons ────────────────────────────────────────────────────────────── */
 function TopStorySkeleton() {
@@ -33,37 +37,6 @@ function GridSkeleton() {
     </div>
   );
 }
-
-/* ── Media outlets list ───────────────────────────────────────────────────── */
-const OUTLETS = [
-  { name: "Brasil de Fato", spectrum: "esquerda", color: "#c0392b" },
-  { name: "Carta Capital", spectrum: "esquerda", color: "#c0392b" },
-  { name: "Agência Pública", spectrum: "centro-esquerda", color: "#e05c3a" },
-  { name: "Folha de S.Paulo", spectrum: "centro-esquerda", color: "#e05c3a" },
-  { name: "O Globo", spectrum: "centro-esquerda", color: "#e05c3a" },
-  { name: "G1 / Globo News", spectrum: "centro", color: "#888888" },
-  { name: "UOL", spectrum: "centro", color: "#888888" },
-  { name: "Estadão", spectrum: "centro-direita", color: "#2980b9" },
-  { name: "Veja", spectrum: "centro-direita", color: "#2980b9" },
-  { name: "R7 / Record", spectrum: "direita", color: "#1565c0" },
-  { name: "Jovem Pan", spectrum: "direita", color: "#1565c0" },
-];
-
-const SPECTRUM_LABELS: Record<string, string> = {
-  esquerda: "Esquerda",
-  "centro-esquerda": "C-Esquerda",
-  centro: "Centro",
-  "centro-direita": "C-Direita",
-  direita: "Direita",
-};
-
-const SPECTRUM_COLORS_MAP: Record<string, string> = {
-  esquerda: "#c0392b",
-  "centro-esquerda": "#e05c3a",
-  centro: "#888888",
-  "centro-direita": "#2980b9",
-  direita: "#1565c0",
-};
 
 type Topic = TopicCardTopic;
 
@@ -276,25 +249,30 @@ function Sidebar({ blindspotTopics }: { blindspotTopics: Topic[] | undefined }) 
           {OUTLETS.map((m) => (
             <div key={m.name} style={{
               display: "flex", alignItems: "center",
-              justifyContent: "space-between", marginBottom: "7px",
+              justifyContent: "space-between", marginBottom: "7px", gap: "8px",
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
-                <div style={{
-                  width: "7px", height: "7px", borderRadius: "50%",
-                  backgroundColor: SPECTRUM_COLORS_MAP[m.spectrum] || "#888",
-                  flexShrink: 0,
-                }} />
-                <span style={{ fontSize: "12px", color: "#333333", fontFamily: "'Inter', sans-serif" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "7px", minWidth: 0 }}>
+                <OutletLogo
+                  name={m.name}
+                  siteUrl={m.url}
+                  spectrumColor={SPECTRUM_COLORS[m.spectrum] || "#888"}
+                  size={16}
+                />
+                <span style={{
+                  fontSize: "12px", color: "#333333", fontFamily: "'Inter', sans-serif",
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}>
                   {m.name}
                 </span>
               </div>
               <span style={{
                 fontSize: "10px",
-                color: SPECTRUM_COLORS_MAP[m.spectrum] || "#888",
+                color: SPECTRUM_COLORS[m.spectrum] || "#888",
                 fontWeight: 600,
                 fontFamily: "'Inter', sans-serif",
                 textTransform: "uppercase",
                 letterSpacing: "0.03em",
+                whiteSpace: "nowrap", flexShrink: 0,
               }}>
                 {SPECTRUM_LABELS[m.spectrum]}
               </span>
@@ -308,6 +286,7 @@ function Sidebar({ blindspotTopics }: { blindspotTopics: Topic[] | undefined }) 
 
 /* ── Main component ──────────────────────────────────────────────────────── */
 export default function Home() {
+  useDocumentMeta({});
   const [activeCategory, setActiveCategory] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
