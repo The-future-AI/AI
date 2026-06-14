@@ -14,10 +14,51 @@ import {
   SPECTRUM_LABELS_FULL,
   CATEGORY_LABELS,
 } from "@/lib/spectrum";
+import { FACTUALITY_RATINGS } from "../../../server/outlets.config";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+/* ── Factuality badge (avaliação de terceiros) ──────────────────────────────── */
+const FACTUALITY_LABELS: Record<string, string> = {
+  "muito-alta": "Fact. muito alta",
+  "alta": "Fact. alta",
+  "mista": "Fact. mista",
+};
+const FACTUALITY_STYLE: Record<string, { color: string; bg: string }> = {
+  "muito-alta": { color: "#1a7a4a", bg: "#e8f5ee" },
+  "alta": { color: "#2563a8", bg: "#e8f1f8" },
+  "mista": { color: "#b45309", bg: "#fdf0d8" },
+};
+
+function FactualityBadge({ slug }: { slug: string }) {
+  const entry = FACTUALITY_RATINGS[slug];
+  if (!entry) return null;
+  const label = FACTUALITY_LABELS[entry.rating] || entry.rating;
+  const style = FACTUALITY_STYLE[entry.rating] || { color: "#666", bg: "#f5f5f5" };
+  const abbrev = entry.source === "Media Bias/Fact Check" ? "MBFC" : entry.source;
+  return (
+    <span
+      title={`Avaliação de factualidade segundo: ${entry.source}`}
+      style={{
+        display: "inline-block",
+        padding: "2px 7px",
+        borderRadius: "3px",
+        fontSize: "10px",
+        fontWeight: 600,
+        fontFamily: "'Inter', sans-serif",
+        color: style.color,
+        backgroundColor: style.bg,
+        border: `1px solid ${style.color}30`,
+        cursor: "help",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label} · {abbrev}
+    </span>
+  );
+}
 
 /* ── 5-box spectrum legend (Ground.news style) ─────────────────────────────── */
 function SpectrumLegend({ data, sourcesBySpectrum }: {
@@ -123,6 +164,7 @@ function ArticleCard({ article }: {
     spectrum?: string | null;
     publishedAt: Date | string;
     outletName?: string | null;
+    outletSlug?: string | null;
     outletUrl?: string | null;
   };
 }) {
@@ -174,6 +216,7 @@ function ArticleCard({ article }: {
             </span>
           )}
           <SpectrumBadge spectrum={spectrum} />
+          {article.outletSlug && <FactualityBadge slug={article.outletSlug} />}
           <span style={{ fontSize: "11px", color: "#aaaaaa", fontFamily: "'Inter', sans-serif" }}>
             {formatDistanceToNow(publishedAt, { addSuffix: true, locale: ptBR })}
           </span>

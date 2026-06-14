@@ -4,7 +4,18 @@ import { Navbar } from "@/components/Navbar";
 import { OutletLogo } from "@/components/OutletLogo";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { SPECTRUM_COLORS, SPECTRUM_BG } from "@/lib/spectrum";
-import { OUTLETS, type Spectrum } from "../../../server/outlets.config";
+import { OUTLETS, FACTUALITY_RATINGS, type Spectrum } from "../../../server/outlets.config";
+
+const FACTUALITY_LABELS: Record<string, string> = {
+  "muito-alta": "Fact. muito alta",
+  "alta": "Fact. alta",
+  "mista": "Fact. mista",
+};
+const FACTUALITY_STYLE: Record<string, { color: string; bg: string }> = {
+  "muito-alta": { color: "#1a7a4a", bg: "#e8f5ee" },
+  "alta": { color: "#2563a8", bg: "#e8f1f8" },
+  "mista": { color: "#b45309", bg: "#fdf0d8" },
+};
 
 const SPECTRUM_META: { key: Spectrum; label: string; description: string }[] = [
   { key: "esquerda", label: "Esquerda", description: "Veículos com linha editorial progressista, foco em movimentos sociais e crítica ao conservadorismo." },
@@ -199,10 +210,29 @@ export default function Metodologia() {
           </h2>
           <p style={{
             fontSize: "13.5px", color: "#888888", fontFamily: "'Inter', sans-serif",
-            marginBottom: "20px", lineHeight: 1.5,
+            marginBottom: "12px", lineHeight: 1.5,
           }}>
             Cada veículo monitorado recebe uma classificação fixa no espectro político. Veja abaixo como cada um foi classificado e o critério utilizado.
           </p>
+          <div style={{
+            display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center",
+            padding: "10px 14px", backgroundColor: "#f7f6f2",
+            border: "1px solid #e5e3df", borderRadius: "6px", marginBottom: "20px",
+          }}>
+            <span style={{ fontSize: "12px", color: "#666666", fontFamily: "'Inter', sans-serif", lineHeight: 1.5 }}>
+              Os selos <strong>Fact.</strong> exibem a avaliação de factualidade do{" "}
+              <a
+                href="https://mediabiasfactcheck.com/brazil-media-profile/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#2563a8", textDecoration: "underline" }}
+              >
+                Media Bias/Fact Check (MBFC)
+              </a>
+              {" "}— organização independente. Não são classificações próprias deste site.
+              Veículos sem selo não possuem avaliação externa pública disponível.
+            </span>
+          </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {OUTLETS_BY_SPECTRUM.map((group) => (
@@ -266,6 +296,35 @@ export default function Metodologia() {
                             >
                               {outlet.name}
                             </a>
+                            {(() => {
+                              const entry = FACTUALITY_RATINGS[outlet.slug];
+                              if (!entry) return null;
+                              const label = FACTUALITY_LABELS[entry.rating] || entry.rating;
+                              const s = FACTUALITY_STYLE[entry.rating] || { color: "#666", bg: "#f5f5f5" };
+                              return (
+                                <a
+                                  href="https://mediabiasfactcheck.com/brazil-media-profile/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={`Avaliação de factualidade segundo: ${entry.source}`}
+                                  style={{ textDecoration: "none" }}
+                                >
+                                  <span style={{
+                                    display: "inline-block",
+                                    padding: "2px 7px",
+                                    borderRadius: "3px",
+                                    fontSize: "10px",
+                                    fontWeight: 600,
+                                    fontFamily: "'Inter', sans-serif",
+                                    color: s.color,
+                                    backgroundColor: s.bg,
+                                    border: `1px solid ${s.color}30`,
+                                  }}>
+                                    {label} · MBFC
+                                  </span>
+                                </a>
+                              );
+                            })()}
                           </div>
                           <p style={{
                             fontSize: "12px", color: "#888888",

@@ -17,6 +17,12 @@
  *   - Literatura acadêmica de comunicação política brasileira.
  * Para veículos não cobertos por essas fontes, a classificação segue critérios
  * editoriais documentados na Metodologia e é revisada periodicamente.
+ *
+ * SOBRE A AVALIAÇÃO DE FACTUALIDADE (`factuality`):
+ * É SEMPRE avaliação de terceiros — nunca classificação própria. O campo
+ * `factualitySource` identifica a organização responsável (ex: "Media Bias/Fact Check").
+ * Veículos sem cobertura externa têm factuality=undefined e não exibem badge.
+ * Referência principal: https://mediabiasfactcheck.com/brazil-media-profile/
  */
 
 export type Spectrum =
@@ -25,6 +31,8 @@ export type Spectrum =
   | "centro"
   | "centro-direita"
   | "direita";
+
+export type Factuality = "muito-alta" | "alta" | "mista";
 
 export interface OutletConfig {
   name: string;
@@ -36,6 +44,17 @@ export interface OutletConfig {
   description: string;
   /** Feeds RSS/Atom do veículo. Vazio = sem feed público estável. */
   feeds: string[];
+  /**
+   * Avaliação de factualidade atribuída por organização terceira.
+   * NUNCA é classificação própria — sempre acompanhada de factualitySource.
+   * Ausente = sem avaliação externa pública disponível para este veículo.
+   */
+  factuality?: Factuality;
+  /**
+   * Nome da organização responsável pela avaliação (ex: "Media Bias/Fact Check").
+   * Obrigatório quando factuality está definida.
+   */
+  factualitySource?: string;
 }
 
 export const OUTLETS: OutletConfig[] = [
@@ -52,6 +71,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://www.brasildefato.com.br/rss2.xml",
       "https://www.brasildefato.com.br/rss.xml",
     ],
+    factuality: "mista",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Carta Capital",
@@ -65,6 +86,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://www.cartacapital.com.br/feed/",
       "https://www.cartacapital.com.br/politica/feed/",
     ],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "The Intercept Brasil",
@@ -75,6 +98,8 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 2016,
     description: "Jornalismo investigativo independente com foco em accountability e direitos.",
     feeds: ["https://www.intercept.com.br/feed/"],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
 
   // ─── Centro-Esquerda ─────────────────────────────────────────────────────────
@@ -92,6 +117,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://feeds.folha.uol.com.br/mercado/rss091.xml",
       "https://feeds.folha.uol.com.br/mundo/rss091.xml",
     ],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "O Globo",
@@ -106,6 +133,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://oglobo.globo.com/politica/rss.xml",
       "https://oglobo.globo.com/economia/rss.xml",
     ],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Agência Pública",
@@ -116,6 +145,8 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 2011,
     description: "Agência de jornalismo investigativo independente, premiada internacionalmente.",
     feeds: ["https://apublica.org/feed/"],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Nexo Jornal",
@@ -126,6 +157,7 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 2015,
     description: "Jornal digital de análise contextualizada, sem publicidade, focado em dados.",
     feeds: ["https://www.nexojornal.com.br/rss.xml"],
+    // Sem avaliação externa pública disponível na base do MBFC
   },
 
   // ─── Centro ──────────────────────────────────────────────────────────────────
@@ -143,6 +175,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://g1.globo.com/rss/g1/economia/",
       "https://g1.globo.com/rss/g1/mundo/",
     ],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "UOL",
@@ -156,6 +190,7 @@ export const OUTLETS: OutletConfig[] = [
       "https://rss.uol.com.br/feed/noticias.xml",
       "https://rss.uol.com.br/feed/economia.xml",
     ],
+    // Sem avaliação externa pública disponível na base do MBFC
   },
   {
     name: "BBC News Brasil",
@@ -166,6 +201,8 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 2005,
     description: "Serviço em português da BBC, padrão internacional de apuração e imparcialidade.",
     feeds: ["https://feeds.bbci.co.uk/portuguese/rss.xml"],
+    factuality: "muito-alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Metrópoles",
@@ -176,6 +213,7 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 2015,
     description: "Portal de Brasília com forte cobertura de bastidores políticos e factual.",
     feeds: ["https://www.metropoles.com/feed"],
+    // Sem avaliação externa pública disponível na base do MBFC
   },
 
   // ─── Centro-Direita ──────────────────────────────────────────────────────────
@@ -193,6 +231,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/brasil/",
       "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/internacional/",
     ],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Veja",
@@ -206,6 +246,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://veja.abril.com.br/feed/",
       "https://veja.abril.com.br/politica/feed/",
     ],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Poder360",
@@ -216,6 +258,7 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 2015,
     description: "Site de jornalismo político e econômico orientado a dados e documentos oficiais.",
     feeds: ["https://www.poder360.com.br/feed/"],
+    // Sem avaliação externa pública disponível na base do MBFC
   },
 
   // ─── Direita ─────────────────────────────────────────────────────────────────
@@ -231,6 +274,8 @@ export const OUTLETS: OutletConfig[] = [
       "https://noticias.r7.com/feed.xml",
       "https://noticias.r7.com/brasil/feed.xml",
     ],
+    factuality: "mista",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Gazeta do Povo",
@@ -241,6 +286,8 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 1919,
     description: "Jornal paranaense de alcance nacional, linha conservadora e liberal na economia.",
     feeds: ["https://www.gazetadopovo.com.br/feed/rss/republica.xml"],
+    factuality: "alta",
+    factualitySource: "Media Bias/Fact Check",
   },
   {
     name: "Jovem Pan",
@@ -251,10 +298,26 @@ export const OUTLETS: OutletConfig[] = [
     foundedYear: 1942,
     description: "Rádio e canal de notícias com forte linha conservadora e opinativa.",
     feeds: ["https://jovempan.com.br/feed"],
+    factuality: "mista",
+    factualitySource: "Media Bias/Fact Check",
   },
 ];
 
 /** Mapa slug → feeds, consumido pelo scraper. */
 export const RSS_FEEDS: Record<string, string[]> = Object.fromEntries(
   OUTLETS.map((o) => [o.slug, o.feeds]),
+);
+
+/**
+ * Mapa slug → { rating, source } para avaliações de factualidade de terceiros.
+ * Inclui apenas veículos com avaliação externa confirmada.
+ * Consumido pelo frontend para exibir badges sem depender do campo DB.
+ */
+export const FACTUALITY_RATINGS: Record<
+  string,
+  { rating: Factuality; source: string } | undefined
+> = Object.fromEntries(
+  OUTLETS
+    .filter((o) => o.factuality && o.factualitySource)
+    .map((o) => [o.slug, { rating: o.factuality as Factuality, source: o.factualitySource as string }]),
 );

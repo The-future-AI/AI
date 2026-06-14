@@ -169,6 +169,7 @@ export async function getArticlesByTopic(topicId: number) {
       outletSlug: mediaOutlets.slug,
       outletUrl: mediaOutlets.url,
       outletOwnership: mediaOutlets.ownership,
+      outletFactuality: mediaOutlets.factuality,
     })
     .from(articles)
     .leftJoin(mediaOutlets, eq(articles.outletId, mediaOutlets.id))
