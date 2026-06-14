@@ -4,22 +4,19 @@
  * Tanto o seed do banco (`server/seed.ts`) quanto o scraper (`server/scraper.ts`)
  * leem este arquivo, evitando divergência entre a lista exibida na Metodologia,
  * os feeds RSS coletados e os metadados de transparência (propriedade,
- * credibilidade factual, ano de fundação).
+ * ano de fundação).
  *
  * SOBRE A CLASSIFICAÇÃO (importante — ver página de Metodologia):
- * `spectrum` (posição no espectro político) e `factuality` (rigor factual /
- * grau de separação entre fato e opinião) são classificações DO VEÍCULO, não de
- * artigos individuais — mesmo modelo do Ground.news. São uma SIMPLIFICAÇÃO
- * ANALÍTICA e CONTESTÁVEL. Onde há cobertura, apoiam-se em referências públicas:
+ * `spectrum` (posição no espectro político) é uma classificação DO VEÍCULO, não
+ * de artigos individuais — mesmo modelo do Ground.news. É uma SIMPLIFICAÇÃO
+ * ANALÍTICA e CONTESTÁVEL. Onde há cobertura, apoia-se em referências públicas:
  *   - Manchetômetro / LEMEP-IESP-UERJ — análise de valências de O Globo,
  *     Estadão e Folha (metodologia pública e citável).
  *   - Media Bias/Fact Check — cobertura parcial de veículos brasileiros.
  *   - Reuters Institute Digital News Report (Brasil) — confiança e audiência.
  *   - Literatura acadêmica de comunicação política brasileira.
  * Para veículos não cobertos por essas fontes, a classificação segue critérios
- * editoriais documentados na Metodologia e é revisada periodicamente. O campo
- * `factuality` descreve o PESO RELATIVO de opinião vs. apuração factual — não é
- * uma acusação de desinformação contra nenhum veículo.
+ * editoriais documentados na Metodologia e é revisada periodicamente.
  */
 
 export type Spectrum =
@@ -29,14 +26,11 @@ export type Spectrum =
   | "centro-direita"
   | "direita";
 
-export type Factuality = "muito-alta" | "alta" | "mista" | "baixa";
-
 export interface OutletConfig {
   name: string;
   slug: string;
   url: string;
   spectrum: Spectrum;
-  factuality: Factuality;
   ownership: string;
   foundedYear: number;
   description: string;
@@ -51,7 +45,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "brasildefato",
     url: "https://www.brasildefato.com.br",
     spectrum: "esquerda",
-    factuality: "mista",
     ownership: "Editora Brasil de Fato (ligada a movimentos sociais)",
     foundedYear: 2003,
     description: "Jornal popular ligado a movimentos sociais, foco em luta de classes e reforma agrária.",
@@ -65,7 +58,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "cartacapital",
     url: "https://www.cartacapital.com.br",
     spectrum: "esquerda",
-    factuality: "alta",
     ownership: "Editora Confiança",
     foundedYear: 1994,
     description: "Revista semanal de análise política com viés progressista.",
@@ -79,7 +71,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "intercept",
     url: "https://www.intercept.com.br",
     spectrum: "esquerda",
-    factuality: "alta",
     ownership: "First Look Media",
     foundedYear: 2016,
     description: "Jornalismo investigativo independente com foco em accountability e direitos.",
@@ -92,7 +83,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "folha",
     url: "https://www.folha.uol.com.br",
     spectrum: "centro-esquerda",
-    factuality: "alta",
     ownership: "Grupo Folha",
     foundedYear: 1921,
     description: "Um dos maiores jornais do Brasil, linha liberal-progressista e jornalismo de apartidarismo declarado.",
@@ -108,7 +98,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "oglobo",
     url: "https://oglobo.globo.com",
     spectrum: "centro-esquerda",
-    factuality: "alta",
     ownership: "Grupo Globo (Família Marinho)",
     foundedYear: 1925,
     description: "Jornal carioca de grande circulação nacional, linha liberal.",
@@ -123,7 +112,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "apublica",
     url: "https://apublica.org",
     spectrum: "centro-esquerda",
-    factuality: "alta",
     ownership: "Associação Pública de Jornalismo (sem fins lucrativos)",
     foundedYear: 2011,
     description: "Agência de jornalismo investigativo independente, premiada internacionalmente.",
@@ -134,7 +122,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "nexo",
     url: "https://www.nexojornal.com.br",
     spectrum: "centro-esquerda",
-    factuality: "muito-alta",
     ownership: "Nexo Jornal Ltda.",
     foundedYear: 2015,
     description: "Jornal digital de análise contextualizada, sem publicidade, focado em dados.",
@@ -147,7 +134,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "g1",
     url: "https://g1.globo.com",
     spectrum: "centro",
-    factuality: "alta",
     ownership: "Grupo Globo (Família Marinho)",
     foundedYear: 2006,
     description: "Portal de notícias do Grupo Globo, cobertura factual ampla e generalista.",
@@ -163,7 +149,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "uol",
     url: "https://www.uol.com.br",
     spectrum: "centro",
-    factuality: "alta",
     ownership: "Grupo UOL (Grupo Folha)",
     foundedYear: 1996,
     description: "Maior portal de conteúdo do Brasil, ampla cobertura jornalística.",
@@ -177,7 +162,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "bbcbrasil",
     url: "https://www.bbc.com/portuguese",
     spectrum: "centro",
-    factuality: "muito-alta",
     ownership: "BBC (serviço público britânico)",
     foundedYear: 2005,
     description: "Serviço em português da BBC, padrão internacional de apuração e imparcialidade.",
@@ -188,7 +172,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "metropoles",
     url: "https://www.metropoles.com",
     spectrum: "centro",
-    factuality: "alta",
     ownership: "Grupo Ímã (Mediabras)",
     foundedYear: 2015,
     description: "Portal de Brasília com forte cobertura de bastidores políticos e factual.",
@@ -201,7 +184,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "estadao",
     url: "https://www.estadao.com.br",
     spectrum: "centro-direita",
-    factuality: "alta",
     ownership: "Grupo Estado (Família Mesquita)",
     foundedYear: 1875,
     description: "O Estado de S. Paulo, jornal centenário com linha liberal-conservadora.",
@@ -217,7 +199,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "veja",
     url: "https://veja.abril.com.br",
     spectrum: "centro-direita",
-    factuality: "mista",
     ownership: "Grupo Abril",
     foundedYear: 1968,
     description: "Maior revista semanal do Brasil, linha liberal-conservadora.",
@@ -231,7 +212,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "poder360",
     url: "https://www.poder360.com.br",
     spectrum: "centro-direita",
-    factuality: "alta",
     ownership: "DrClick Comunicação",
     foundedYear: 2015,
     description: "Site de jornalismo político e econômico orientado a dados e documentos oficiais.",
@@ -244,7 +224,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "r7",
     url: "https://noticias.r7.com",
     spectrum: "direita",
-    factuality: "mista",
     ownership: "Grupo Record (Igreja Universal do Reino de Deus)",
     foundedYear: 2009,
     description: "Portal de notícias da TV Record, linha conservadora.",
@@ -258,7 +237,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "gazetadopovo",
     url: "https://www.gazetadopovo.com.br",
     spectrum: "direita",
-    factuality: "mista",
     ownership: "Grupo Paranaense de Comunicação (GRPCOM)",
     foundedYear: 1919,
     description: "Jornal paranaense de alcance nacional, linha conservadora e liberal na economia.",
@@ -269,7 +247,6 @@ export const OUTLETS: OutletConfig[] = [
     slug: "jovempan",
     url: "https://jovempan.com.br",
     spectrum: "direita",
-    factuality: "mista",
     ownership: "Grupo Jovem Pan",
     foundedYear: 1942,
     description: "Rádio e canal de notícias com forte linha conservadora e opinativa.",

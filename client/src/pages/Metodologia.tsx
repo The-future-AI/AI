@@ -1,10 +1,10 @@
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, Scale, Eye, BarChart2, RefreshCw, AlertCircle, ShieldCheck, ExternalLink } from "lucide-react";
+import { ArrowLeft, BookOpen, Scale, Eye, BarChart2, RefreshCw, AlertCircle, ExternalLink } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { OutletLogo } from "@/components/OutletLogo";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { SPECTRUM_COLORS, SPECTRUM_BG } from "@/lib/spectrum";
-import { OUTLETS, type Spectrum, type Factuality } from "../../../server/outlets.config";
+import { OUTLETS, type Spectrum } from "../../../server/outlets.config";
 
 const SPECTRUM_META: { key: Spectrum; label: string; description: string }[] = [
   { key: "esquerda", label: "Esquerda", description: "Veículos com linha editorial progressista, foco em movimentos sociais e crítica ao conservadorismo." },
@@ -12,47 +12,6 @@ const SPECTRUM_META: { key: Spectrum; label: string; description: string }[] = [
   { key: "centro", label: "Centro", description: "Veículos de cobertura ampla e generalista, com foco em notícias factuais." },
   { key: "centro-direita", label: "Centro-Direita", description: "Veículos com linha liberal-conservadora, defesa do mercado e reformas econômicas." },
   { key: "direita", label: "Direita", description: "Veículos com linha editorial conservadora, defesa de valores tradicionais e crítica ao progressismo." },
-];
-
-const FACTUALITY_LABELS: Record<Factuality, string> = {
-  "muito-alta": "Factualidade muito alta",
-  alta: "Factualidade alta",
-  mista: "Factualidade mista",
-  baixa: "Factualidade baixa",
-};
-
-const FACTUALITY_COLORS: Record<Factuality, { fg: string; bg: string }> = {
-  "muito-alta": { fg: "#1b7a43", bg: "#e7f6ec" },
-  alta: { fg: "#2a7d6f", bg: "#e6f5f1" },
-  mista: { fg: "#a07000", bg: "#fff7e0" },
-  baixa: { fg: "#b03030", bg: "#fdecec" },
-};
-
-const FACTUALITY_LEVELS: { key: Factuality; dot: string; meaning: string; examples: string }[] = [
-  {
-    key: "muito-alta",
-    dot: "#1b7a43",
-    meaning: "Forte separação entre fato e opinião, uso consistente de fontes primárias e contextualização. Conteúdo predominantemente factual.",
-    examples: "Ex.: Nexo, BBC News Brasil, Agência Pública",
-  },
-  {
-    key: "alta",
-    dot: "#2a7d6f",
-    meaning: "Padrão jornalístico consolidado, com apuração e checagem como base e seções de opinião bem identificadas.",
-    examples: "Ex.: Folha, Estadão, O Globo",
-  },
-  {
-    key: "mista",
-    dot: "#a07000",
-    meaning: "Presença marcante de opinião e análise ao lado da informação factual; a fronteira entre reportagem e comentário é menos nítida. Recomendamos leitura atenta ao gênero do conteúdo.",
-    examples: "Ex.: Veja, Jovem Pan",
-  },
-  {
-    key: "baixa",
-    dot: "#b03030",
-    meaning: "Predomínio de opinião sobre apuração factual. Nenhum dos veículos atualmente monitorados está classificado nesta categoria.",
-    examples: "—",
-  },
 ];
 
 const OUTLETS_BY_SPECTRUM = SPECTRUM_META.map((meta) => ({
@@ -82,13 +41,8 @@ const METHODOLOGY_STEPS = [
     description: "Para cada tópico, calculamos a proporção de cobertura por espectro político. Se 3 veículos cobriram um assunto — 1 de esquerda, 1 de centro e 1 de direita — cada espectro recebe 33%. Os percentuais refletem quem cobriu, não o conteúdo.",
   },
   {
-    icon: ShieldCheck,
-    title: "5. Rigor Factual",
-    description: "Além do viés político, cada veículo recebe uma nota de rigor factual (muito alta, alta, mista ou baixa) que descreve o grau de separação entre fato e opinião no seu conteúdo — não a veracidade de matérias específicas. Viés e rigor factual são dimensões distintas: um veículo pode ter viés acentuado e ainda assim alto rigor factual.",
-  },
-  {
     icon: Eye,
-    title: "6. Detecção de Ponto Cego",
+    title: "5. Detecção de Ponto Cego",
     description: "Um tópico é marcado como \"Ponto Cego\" quando 70% ou mais da cobertura vem de um único lado do espectro político. Isso indica que o assunto foi ignorado pelo outro lado, criando uma \"bolha informacional\".",
   },
 ];
@@ -97,7 +51,7 @@ export default function Metodologia() {
   useDocumentMeta({
     title: "Metodologia",
     description:
-      "Como classificamos o viés político e a credibilidade factual dos veículos de comunicação brasileiros, e como detectamos pontos cegos na cobertura.",
+      "Como classificamos o viés político dos veículos de comunicação brasileiros e como detectamos pontos cegos na cobertura.",
   });
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-page)" }}>
@@ -229,82 +183,6 @@ export default function Metodologia() {
           </div>
         </div>
 
-        {/* Factuality / credibility explanation */}
-        <div style={{
-          backgroundColor: "#ffffff",
-          border: "1px solid #e5e3df",
-          borderRadius: "6px",
-          padding: "clamp(16px, 4vw, 28px)",
-          marginBottom: "20px",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-            <ShieldCheck size={18} style={{ color: "#2a7d6f" }} />
-            <h2 style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "20px", fontWeight: 700, color: "#111111",
-            }}>
-              Credibilidade Factual (o selo "Fact.")
-            </h2>
-          </div>
-          <p style={{
-            fontSize: "13.5px", color: "#666666", fontFamily: "'Inter', sans-serif",
-            marginBottom: "8px", lineHeight: 1.6,
-          }}>
-            Ao lado de cada veículo você verá um selo de <strong>rigor factual</strong> (abreviado como <strong>"Fact."</strong> em alguns lugares). Ele descreve o <strong>grau de separação entre fato e opinião</strong> no conteúdo do veículo — ou seja, o quanto a publicação prioriza reportagem e apuração em relação a comentário e análise. <strong>Não é um juízo sobre veracidade de matérias específicas nem uma acusação de desinformação.</strong>
-          </p>
-          <p style={{
-            fontSize: "13.5px", color: "#666666", fontFamily: "'Inter', sans-serif",
-            marginBottom: "18px", lineHeight: 1.6,
-          }}>
-            É uma medida <strong>independente do viés político</strong>: um veículo pode ser de esquerda ou de direita e, ainda assim, ter alto rigor factual — ou um peso maior de opinião. São duas perguntas diferentes: <em>"de que lado?"</em> (viés) e <em>"reportagem ou opinião?"</em> (rigor factual). É uma avaliação analítica e contestável, revisada periodicamente. Usamos 4 níveis:
-          </p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {FACTUALITY_LEVELS.map((level) => {
-              const c = FACTUALITY_COLORS[level.key];
-              return (
-                <div key={level.key} style={{
-                  display: "flex", alignItems: "flex-start", gap: "12px",
-                  padding: "12px 14px",
-                  backgroundColor: c.bg,
-                  border: `1px solid ${c.fg}30`,
-                  borderRadius: "6px",
-                }}>
-                  <span style={{
-                    display: "inline-flex", alignItems: "center", gap: "5px",
-                    flexShrink: 0, marginTop: "1px",
-                  }}>
-                    <span style={{
-                      width: "10px", height: "10px", borderRadius: "50%",
-                      backgroundColor: level.dot, display: "inline-block",
-                    }} />
-                    <span style={{
-                      fontSize: "12px", fontWeight: 700, color: c.fg,
-                      fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap",
-                    }}>
-                      {FACTUALITY_LABELS[level.key]}
-                    </span>
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                      fontSize: "13px", color: "#555555", lineHeight: 1.55,
-                      fontFamily: "'Inter', sans-serif", margin: 0,
-                    }}>
-                      {level.meaning}
-                    </p>
-                    <p style={{
-                      fontSize: "11.5px", color: "#999999", lineHeight: 1.4,
-                      fontFamily: "'Inter', sans-serif", margin: "3px 0 0",
-                    }}>
-                      {level.examples}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Outlets by spectrum */}
         <div style={{
           backgroundColor: "#ffffff",
@@ -357,7 +235,6 @@ export default function Metodologia() {
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {group.outlets.map((outlet) => {
-                    const fact = FACTUALITY_COLORS[outlet.factuality];
                     return (
                       <div key={outlet.name} style={{
                         display: "flex", alignItems: "flex-start", gap: "8px",
@@ -389,16 +266,6 @@ export default function Metodologia() {
                             >
                               {outlet.name}
                             </a>
-                            <span style={{
-                              display: "inline-flex", alignItems: "center", gap: "3px",
-                              padding: "1px 7px", borderRadius: "3px",
-                              fontSize: "10px", fontWeight: 700,
-                              fontFamily: "'Inter', sans-serif",
-                              color: fact.fg, backgroundColor: fact.bg,
-                            }}>
-                              <ShieldCheck size={10} />
-                              {FACTUALITY_LABELS[outlet.factuality]}
-                            </span>
                           </div>
                           <p style={{
                             fontSize: "12px", color: "#888888",
@@ -500,7 +367,7 @@ export default function Metodologia() {
               {
                 name: "Media Bias/Fact Check (MBFC)",
                 url: "https://mediabiasfactcheck.com/brazil-media-profile/",
-                note: "Base internacional com metodologia pública de viés e rigor factual. Cobertura parcial dos veículos brasileiros.",
+                note: "Base internacional com metodologia pública de classificação de viés editorial. Cobertura parcial dos veículos brasileiros.",
               },
               {
                 name: "Reuters Institute — Digital News Report (Brasil)",
@@ -575,10 +442,6 @@ export default function Metodologia() {
             {
               q: "Por que alguns veículos não aparecem?",
               a: "Monitoramos veículos que disponibilizam feeds RSS públicos. A cobertura abrange hoje 17 veículos em todo o espectro — de Brasil de Fato e The Intercept à esquerda até Gazeta do Povo e Jovem Pan à direita —, buscando equilíbrio entre os lados. Sugestões de novos veículos com RSS público são bem-vindas.",
-            },
-            {
-              q: "Qual a diferença entre viés e rigor factual?",
-              a: "São duas medidas independentes. O viés indica a posição editorial no espectro político (esquerda a direita). O rigor factual indica o grau de separação entre fato e opinião no conteúdo — não a veracidade de matérias específicas. Um veículo pode ter viés acentuado e ainda assim alto rigor factual, e vice-versa. Por isso exibimos os dois separadamente.",
             },
             {
               q: "Com que frequência as notícias são atualizadas?",

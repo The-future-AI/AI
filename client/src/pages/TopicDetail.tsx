@@ -112,45 +112,6 @@ function SpectrumBadge({ spectrum }: { spectrum: string }) {
   );
 }
 
-const FACTUALITY_LABELS: Record<string, string> = {
-  "muito-alta": "Fact. muito alta",
-  alta: "Fact. alta",
-  mista: "Fact. mista",
-  baixa: "Fact. baixa",
-};
-const FACTUALITY_STYLE: Record<string, { fg: string; bg: string }> = {
-  "muito-alta": { fg: "#1b7a43", bg: "#e7f6ec" },
-  alta: { fg: "#2a7d6f", bg: "#e6f5f1" },
-  mista: { fg: "#a07000", bg: "#fff7e0" },
-  baixa: { fg: "#b03030", bg: "#fdecec" },
-};
-
-function FactualityBadge({ factuality }: { factuality: string }) {
-  const style = FACTUALITY_STYLE[factuality];
-  const label = FACTUALITY_LABELS[factuality];
-  if (!style || !label) return null;
-  return (
-    <span
-      title="Rigor factual: grau de separação entre fato e opinião no veículo (independente do viés político; avaliação contestável)"
-      style={{
-        display: "inline-block",
-        padding: "3px 8px",
-        borderRadius: "3px",
-        fontSize: "10px",
-        fontWeight: 700,
-        fontFamily: "'Inter', sans-serif",
-        textTransform: "uppercase",
-        letterSpacing: "0.05em",
-        color: style.fg,
-        backgroundColor: style.bg,
-        border: `1px solid ${style.fg}40`,
-      }}
-    >
-      {label}
-    </span>
-  );
-}
-
 /* ── Article source card ────────────────────────────────────────────────────── */
 function ArticleCard({ article }: {
   article: {
@@ -163,7 +124,6 @@ function ArticleCard({ article }: {
     publishedAt: Date | string;
     outletName?: string | null;
     outletUrl?: string | null;
-    outletFactuality?: string | null;
   };
 }) {
   const publishedAt = article.publishedAt instanceof Date ? article.publishedAt : new Date(article.publishedAt);
@@ -214,7 +174,6 @@ function ArticleCard({ article }: {
             </span>
           )}
           <SpectrumBadge spectrum={spectrum} />
-          {article.outletFactuality && <FactualityBadge factuality={article.outletFactuality} />}
           <span style={{ fontSize: "11px", color: "#aaaaaa", fontFamily: "'Inter', sans-serif" }}>
             {formatDistanceToNow(publishedAt, { addSuffix: true, locale: ptBR })}
           </span>
