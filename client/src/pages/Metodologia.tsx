@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, Scale, Eye, BarChart2, RefreshCw, AlertCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BookOpen, Scale, Eye, BarChart2, RefreshCw, AlertCircle, ShieldCheck, ExternalLink } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { OutletLogo } from "@/components/OutletLogo";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
@@ -32,25 +32,25 @@ const FACTUALITY_LEVELS: { key: Factuality; dot: string; meaning: string; exampl
   {
     key: "muito-alta",
     dot: "#1b7a43",
-    meaning: "Apuração rigorosa, uso consistente de fontes primárias e raras correções. Separa claramente fato de opinião.",
-    examples: "Ex.: Nexo, BBC Brasil, Agência Pública",
+    meaning: "Forte separação entre fato e opinião, uso consistente de fontes primárias e contextualização. Conteúdo predominantemente factual.",
+    examples: "Ex.: Nexo, BBC News Brasil, Agência Pública",
   },
   {
     key: "alta",
     dot: "#2a7d6f",
-    meaning: "Boa apuração e checagem, com erros ocasionais que costumam ser corrigidos. Padrão jornalístico consolidado.",
+    meaning: "Padrão jornalístico consolidado, com apuração e checagem como base e seções de opinião bem identificadas.",
     examples: "Ex.: Folha, Estadão, O Globo",
   },
   {
     key: "mista",
     dot: "#a07000",
-    meaning: "Mistura informação verificada com opinião forte, sensacionalismo ou erros mais frequentes. Exige leitura mais atenta.",
+    meaning: "Presença marcante de opinião e análise ao lado da informação factual; a fronteira entre reportagem e comentário é menos nítida. Recomendamos leitura atenta ao gênero do conteúdo.",
     examples: "Ex.: Veja, Jovem Pan",
   },
   {
     key: "baixa",
     dot: "#b03030",
-    meaning: "Apuração fraca, conteúdo frequentemente enganoso ou não verificado. Confiabilidade factual baixa.",
+    meaning: "Predomínio de opinião sobre apuração factual. Nenhum dos veículos atualmente monitorados está classificado nesta categoria.",
     examples: "—",
   },
 ];
@@ -69,7 +69,7 @@ const METHODOLOGY_STEPS = [
   {
     icon: BarChart2,
     title: "2. Classificação por Veículo",
-    description: "Cada veículo de comunicação possui uma classificação política fixa, baseada em análises acadêmicas e jornalísticas amplamente reconhecidas. A classificação é do veículo, não do artigo individual.",
+    description: "Cada veículo possui uma classificação fixa no espectro, apoiada — onde há cobertura — em referências públicas como o Manchetômetro (LEMEP/IESP-UERJ), o Media Bias/Fact Check e a literatura acadêmica de comunicação política; nos demais casos, em critérios editoriais documentados. A classificação é do veículo, não do artigo individual, e é uma simplificação contestável.",
   },
   {
     icon: Scale,
@@ -83,8 +83,8 @@ const METHODOLOGY_STEPS = [
   },
   {
     icon: ShieldCheck,
-    title: "5. Credibilidade Factual",
-    description: "Além do viés político, cada veículo recebe uma nota de credibilidade factual (muito alta, alta, mista ou baixa), que mede o rigor da apuração — independentemente da posição política. Viés e factualidade são duas dimensões distintas.",
+    title: "5. Rigor Factual",
+    description: "Além do viés político, cada veículo recebe uma nota de rigor factual (muito alta, alta, mista ou baixa) que descreve o grau de separação entre fato e opinião no seu conteúdo — não a veracidade de matérias específicas. Viés e rigor factual são dimensões distintas: um veículo pode ter viés acentuado e ainda assim alto rigor factual.",
   },
   {
     icon: Eye,
@@ -250,13 +250,13 @@ export default function Metodologia() {
             fontSize: "13.5px", color: "#666666", fontFamily: "'Inter', sans-serif",
             marginBottom: "8px", lineHeight: 1.6,
           }}>
-            Ao lado de cada veículo você verá um selo de <strong>credibilidade factual</strong> (abreviado como <strong>"Fact."</strong> em alguns lugares). Ele indica o <strong>rigor da apuração</strong> daquele veículo — o quão confiável e bem checada é a informação que ele publica.
+            Ao lado de cada veículo você verá um selo de <strong>rigor factual</strong> (abreviado como <strong>"Fact."</strong> em alguns lugares). Ele descreve o <strong>grau de separação entre fato e opinião</strong> no conteúdo do veículo — ou seja, o quanto a publicação prioriza reportagem e apuração em relação a comentário e análise. <strong>Não é um juízo sobre veracidade de matérias específicas nem uma acusação de desinformação.</strong>
           </p>
           <p style={{
             fontSize: "13.5px", color: "#666666", fontFamily: "'Inter', sans-serif",
             marginBottom: "18px", lineHeight: 1.6,
           }}>
-            É uma medida <strong>independente do viés político</strong>: um veículo pode ser de esquerda ou de direita e, ainda assim, ter factualidade alta — ou baixa. São duas perguntas diferentes: <em>"de que lado?"</em> (viés) e <em>"o quão confiável?"</em> (factualidade). Usamos 4 níveis:
+            É uma medida <strong>independente do viés político</strong>: um veículo pode ser de esquerda ou de direita e, ainda assim, ter alto rigor factual — ou um peso maior de opinião. São duas perguntas diferentes: <em>"de que lado?"</em> (viés) e <em>"reportagem ou opinião?"</em> (rigor factual). É uma avaliação analítica e contestável, revisada periodicamente. Usamos 4 níveis:
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -466,6 +466,97 @@ export default function Metodologia() {
           </ul>
         </div>
 
+        {/* Fontes e Referências */}
+        <div style={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #e5e3df",
+          borderRadius: "6px",
+          padding: "clamp(16px, 4vw, 28px)",
+          marginBottom: "20px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+            <BookOpen size={18} style={{ color: "#555555" }} />
+            <h2 style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "20px", fontWeight: 700, color: "#111111",
+            }}>
+              Fontes e Referências
+            </h2>
+          </div>
+          <p style={{
+            fontSize: "13.5px", color: "#666666", fontFamily: "'Inter', sans-serif",
+            marginBottom: "18px", lineHeight: 1.6,
+          }}>
+            Não existe no Brasil uma base pública única que classifique todos os veículos que monitoramos. Por isso, combinamos as referências abaixo e, onde elas não chegam, aplicamos critérios editoriais documentados — sempre como uma avaliação contestável e revisável. Cada fonte cobre uma parte do problema:
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {[
+              {
+                name: "Manchetômetro — LEMEP / IESP-UERJ",
+                url: "https://manchetometro.com.br/metodologia/",
+                note: "Projeto acadêmico da UERJ. Análise de valências com fórmula pública para medir o tom da cobertura de O Globo, Estadão e Folha. Principal referência citável para esses três veículos.",
+              },
+              {
+                name: "Media Bias/Fact Check (MBFC)",
+                url: "https://mediabiasfactcheck.com/brazil-media-profile/",
+                note: "Base internacional com metodologia pública de viés e rigor factual. Cobertura parcial dos veículos brasileiros.",
+              },
+              {
+                name: "Reuters Institute — Digital News Report (Brasil)",
+                url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2025/brazil",
+                note: "Referência para confiança do público e padrões de consumo de notícias no Brasil (não para posição no espectro).",
+              },
+              {
+                name: "Literatura acadêmica de comunicação política",
+                url: "https://lemep.iesp.uerj.br/",
+                note: "Estudos sobre linha editorial e posicionamento da imprensa brasileira usados como contexto na classificação.",
+              },
+            ].map((src) => (
+              <a
+                key={src.name}
+                href={src.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "block",
+                  padding: "12px 14px",
+                  border: "1px solid #e5e3df",
+                  borderRadius: "6px",
+                  textDecoration: "none",
+                  backgroundColor: "#fafaf8",
+                  transition: "box-shadow 0.15s ease",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.06)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+                  <span style={{
+                    fontSize: "13px", fontWeight: 700, color: "#111111",
+                    fontFamily: "'Inter', sans-serif",
+                  }}>
+                    {src.name}
+                  </span>
+                  <ExternalLink size={12} style={{ color: "#aaaaaa" }} />
+                </div>
+                <p style={{
+                  fontSize: "12.5px", color: "#777777",
+                  fontFamily: "'Inter', sans-serif", lineHeight: 1.5, margin: 0,
+                }}>
+                  {src.note}
+                </p>
+              </a>
+            ))}
+          </div>
+
+          <p style={{
+            fontSize: "12px", color: "#999999", fontFamily: "'Inter', sans-serif",
+            marginTop: "16px", lineHeight: 1.5,
+          }}>
+            Discorda de uma classificação? Ela é revisável. Envie sua contestação com argumentos e fontes — corrigir é parte da metodologia.
+          </p>
+        </div>
+
         {/* FAQ */}
         <div style={{
           backgroundColor: "#ffffff",
@@ -486,8 +577,8 @@ export default function Metodologia() {
               a: "Monitoramos veículos que disponibilizam feeds RSS públicos. A cobertura abrange hoje 17 veículos em todo o espectro — de Brasil de Fato e The Intercept à esquerda até Gazeta do Povo e Jovem Pan à direita —, buscando equilíbrio entre os lados. Sugestões de novos veículos com RSS público são bem-vindas.",
             },
             {
-              q: "Qual a diferença entre viés e credibilidade factual?",
-              a: "São duas medidas independentes. O viés indica a posição editorial no espectro político (esquerda a direita). A credibilidade factual indica o rigor da apuração — um veículo pode ter viés acentuado e ainda assim alta factualidade, e vice-versa. Por isso exibimos as duas separadamente na classificação dos veículos.",
+              q: "Qual a diferença entre viés e rigor factual?",
+              a: "São duas medidas independentes. O viés indica a posição editorial no espectro político (esquerda a direita). O rigor factual indica o grau de separação entre fato e opinião no conteúdo — não a veracidade de matérias específicas. Um veículo pode ter viés acentuado e ainda assim alto rigor factual, e vice-versa. Por isso exibimos os dois separadamente.",
             },
             {
               q: "Com que frequência as notícias são atualizadas?",
@@ -503,7 +594,7 @@ export default function Metodologia() {
             },
             {
               q: "A classificação política é definitiva?",
-              a: "Não. A classificação é uma simplificação analítica baseada na linha editorial predominante de cada veículo. Veículos publicam conteúdos variados e podem divergir de sua classificação geral. Revisamos as classificações periodicamente.",
+              a: "Não. É uma simplificação analítica e contestável, apoiada — onde há cobertura — em fontes públicas (Manchetômetro, Media Bias/Fact Check, literatura acadêmica) e, nos demais casos, em critérios editoriais documentados. Veículos publicam conteúdos variados e podem divergir de sua classificação geral. Revisamos as classificações periodicamente e aceitamos contestações fundamentadas.",
             },
           ].map((item, i, arr) => (
             <div key={i} style={{

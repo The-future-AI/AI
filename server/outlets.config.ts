@@ -6,10 +6,20 @@
  * os feeds RSS coletados e os metadados de transparência (propriedade,
  * credibilidade factual, ano de fundação).
  *
- * Classificação política (`spectrum`) e credibilidade factual (`factuality`)
- * baseiam-se em literatura acadêmica e em referências como o Media Bias/Fact
- * Check, adaptadas ao contexto brasileiro. São classificações do VEÍCULO, não
- * de artigos individuais — o mesmo modelo do Ground.news.
+ * SOBRE A CLASSIFICAÇÃO (importante — ver página de Metodologia):
+ * `spectrum` (posição no espectro político) e `factuality` (rigor factual /
+ * grau de separação entre fato e opinião) são classificações DO VEÍCULO, não de
+ * artigos individuais — mesmo modelo do Ground.news. São uma SIMPLIFICAÇÃO
+ * ANALÍTICA e CONTESTÁVEL. Onde há cobertura, apoiam-se em referências públicas:
+ *   - Manchetômetro / LEMEP-IESP-UERJ — análise de valências de O Globo,
+ *     Estadão e Folha (metodologia pública e citável).
+ *   - Media Bias/Fact Check — cobertura parcial de veículos brasileiros.
+ *   - Reuters Institute Digital News Report (Brasil) — confiança e audiência.
+ *   - Literatura acadêmica de comunicação política brasileira.
+ * Para veículos não cobertos por essas fontes, a classificação segue critérios
+ * editoriais documentados na Metodologia e é revisada periodicamente. O campo
+ * `factuality` descreve o PESO RELATIVO de opinião vs. apuração factual — não é
+ * uma acusação de desinformação contra nenhum veículo.
  */
 
 export type Spectrum =

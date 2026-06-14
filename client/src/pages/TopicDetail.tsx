@@ -131,7 +131,7 @@ function FactualityBadge({ factuality }: { factuality: string }) {
   if (!style || !label) return null;
   return (
     <span
-      title="Credibilidade factual do veículo (independente do viés político)"
+      title="Rigor factual: grau de separação entre fato e opinião no veículo (independente do viés político; avaliação contestável)"
       style={{
         display: "inline-block",
         padding: "3px 8px",
