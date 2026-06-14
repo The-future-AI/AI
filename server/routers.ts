@@ -14,6 +14,7 @@ import {
   getLatestScrapeJob,
   getTopicsCount,
   getTopicsWithSources,
+  addNewsletterSubscriber,
 } from "./db";
 import { runPipeline } from "./pipeline";
 
@@ -81,6 +82,32 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       return getAllOutlets();
     }),
+  }),
+
+  newsletter: router({
+    subscribe: publicProcedure
+      .input(
+        z.object({
+          email: z.string().email("E-mail inválido").max(320),
+          source: z.string().max(64).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const ok = await addNewsletterSubscriber(
+          input.email.trim().toLowerCase(),
+          input.source
+        );
+        if (!ok) {
+          return {
+            success: false as const,
+            message: "Serviço de inscrição indisponível no momento.",
+          };
+        }
+        return {
+          success: true as const,
+          message: "Inscrição confirmada! Você receberá nosso resumo.",
+        };
+      }),
   }),
 
   scraper: router({

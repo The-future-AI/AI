@@ -7,6 +7,7 @@ import {
   articles,
   mediaOutlets,
   scrapeJobs,
+  newsletterSubscribers,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -275,6 +276,27 @@ export async function getLatestScrapeJob() {
     .orderBy(desc(scrapeJobs.startedAt))
     .limit(1);
   return result[0] || null;
+}
+
+// ─── Newsletter ──────────────────────────────────────────────────────────────
+
+/**
+ * Registra um e-mail na newsletter. Idempotente: reinscrever um e-mail já
+ * existente reativa a inscrição em vez de gerar erro de chave duplicada.
+ * Retorna `false` quando o banco está indisponível.
+ */
+export async function addNewsletterSubscriber(
+  email: string,
+  source?: string
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  await db
+    .insert(newsletterSubscribers)
+    .values({ email, source: source ?? null, active: true })
+    .onDuplicateKeyUpdate({ set: { active: true } });
+  return true;
 }
 
 export async function getTopicsCount(opts?: { category?: string; search?: string }) {

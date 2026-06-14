@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getDominantSpectrum } from "@/components/SpectrumBar";
 import type { SpectrumData } from "@/components/SpectrumBar";
 import { OutletLogo } from "@/components/OutletLogo";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { SPECTRUM_COLORS, SPECTRUM_LABELS } from "@/lib/spectrum";
 import { OUTLETS } from "../../../server/outlets.config";
@@ -103,6 +104,9 @@ function BlindspotItem({ topic }: { topic: Topic }) {
 function Sidebar({ blindspotTopics }: { blindspotTopics: Topic[] | undefined }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* Newsletter signup */}
+      <NewsletterSignup source="home-sidebar" />
+
       {/* PONTO CEGO widget */}
       <div style={{
         backgroundColor: "#ffffff",

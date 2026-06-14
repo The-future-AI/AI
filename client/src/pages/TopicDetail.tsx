@@ -15,6 +15,8 @@ import {
   CATEGORY_LABELS,
 } from "@/lib/spectrum";
 import { FACTUALITY_RATINGS } from "../../../server/outlets.config";
+import { ShareButtons } from "@/components/ShareButtons";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { formatDistanceToNow, format } from "date-fns";
@@ -462,6 +464,11 @@ export default function TopicDetail() {
             <SpectrumBar data={spectrumData} size="lg" showLabels={false} showCoverage={false} />
             <SpectrumLegend data={spectrumData} sourcesBySpectrum={sourcesBySpectrum} />
           </div>
+
+          {/* Share row */}
+          <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid #f0ede8" }}>
+            <ShareButtons title={topic.title} />
+          </div>
         </div>
 
         {/* Blindspot alert */}
@@ -648,6 +655,11 @@ export default function TopicDetail() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Newsletter banner */}
+        <div style={{ marginTop: "28px" }}>
+          <NewsletterSignup source="topic-detail" variant="banner" />
         </div>
       </div>
     </div>

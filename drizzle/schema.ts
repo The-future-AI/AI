@@ -172,3 +172,17 @@ export const scrapeJobs = mysqlTable("scrape_jobs", {
 
 export type ScrapeJob = typeof scrapeJobs.$inferSelect;
 export type InsertScrapeJob = typeof scrapeJobs.$inferInsert;
+
+// Newsletter subscribers (captura de e-mail)
+export const newsletterSubscribers = mysqlTable("newsletter_subscribers", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  // Origem da inscrição (ex: "home-sidebar", "topic-detail") para análise.
+  source: varchar("source", { length: 64 }),
+  confirmed: boolean("confirmed").default(false).notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+export type InsertNewsletterSubscriber = typeof newsletterSubscribers.$inferInsert;
