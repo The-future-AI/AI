@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, Newspaper, RefreshCw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Navbar } from "@/components/Navbar";
 import { TopicCard } from "@/components/TopicCard";
 import type { TopicCardTopic } from "@/components/TopicCard";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDominantSpectrum } from "@/components/SpectrumBar";
 import type { SpectrumData } from "@/components/SpectrumBar";
@@ -291,9 +291,23 @@ function Sidebar({ blindspotTopics }: { blindspotTopics: Topic[] | undefined }) 
 /* ── Main component ──────────────────────────────────────────────────────── */
 export default function Home() {
   useDocumentMeta({});
-  const [activeCategory, setActiveCategory] = useState("todos");
+  const [location] = useLocation();
+  // Ler categoria da URL (?categoria=politica) para suportar navegação vinda de outras páginas
+  // Wouter's useLocation only tracks pathname, so we also read window.location.search directly
+  const getUrlCategory = () =>
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("categoria") || "todos"
+      : "todos";
+  const [activeCategory, setActiveCategory] = useState(getUrlCategory);
+  // Sincronizar quando a URL mudar (pathname ou search)
+  useEffect(() => {
+    setActiveCategory(getUrlCategory());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, typeof window !== "undefined" ? window.location.search : ""]);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
+  const [sortBy, setSortBy] = useState<"recent" | "sources" | "divergence">("recent");
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const LIMIT = 30;
 
   const { data: topicsData, isLoading, refetch, isFetching } = trpc.topics.list.useQuery({
@@ -303,9 +317,24 @@ export default function Home() {
     search: searchQuery || undefined,
   });
 
+  // Client-side sort (server returns by publishedAt desc by default)
+  const sortTopics = (items: Topic[]) => {
+    if (sortBy === "sources") return [...items].sort((a, b) => b.totalSources - a.totalSources);
+    if (sortBy === "divergence") return [...items].sort((a, b) => {
+      const divergence = (t: Topic) => {
+        const pcts = [t.leftPct, t.centerLeftPct, t.centerPct, t.centerRightPct, t.rightPct];
+        const covered = pcts.filter(p => p > 0).length;
+        return covered;
+      };
+      return divergence(b) - divergence(a);
+    });
+    return items; // recent (default)
+  };
+
   const { data: blindspotTopics } = trpc.topics.blindspot.useQuery({ limit: 8 });
 
-  const topics = topicsData?.items || [];
+  const rawTopics = topicsData?.items || [];
+  const topics = sortTopics(rawTopics);
   const totalTopics = topicsData?.total || 0;
   const hasMore = (page + 1) * LIMIT < totalTopics;
 
@@ -338,7 +367,8 @@ export default function Home() {
           padding: "16px 0 14px",
           flexWrap: "wrap",
           gap: "8px",
-        }}>
+        }}
+        className="page-header-actions">
           <div>
             <h1 style={{
               fontFamily: "'Playfair Display', Georgia, serif",
@@ -358,22 +388,44 @@ export default function Home() {
               {isLoading ? "Carregando..." : `${totalTopics} tópicos · Atualizado a cada hora`}
             </p>
           </div>
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            style={{
-              display: "flex", alignItems: "center", gap: "6px",
-              fontSize: "12px", fontFamily: "'Inter', sans-serif",
-              color: "#555555", backgroundColor: "#ffffff",
-              border: "1px solid #e5e3df", borderRadius: "4px",
-              padding: "7px 12px", cursor: isFetching ? "not-allowed" : "pointer",
-              opacity: isFetching ? 0.6 : 1,
-              flexShrink: 0,
-            }}
-          >
-            <RefreshCw size={13} style={{ animation: isFetching ? "spin 1s linear infinite" : "none" }} />
-            Atualizar
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            {/* Sort selector */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+              style={{
+                fontSize: "12px", fontFamily: "'Inter', sans-serif",
+                color: "#555555", backgroundColor: "#ffffff",
+                border: "1px solid #e5e3df", borderRadius: "4px",
+                padding: "7px 10px", cursor: "pointer",
+                outline: "none", appearance: "none",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E")`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 8px center",
+                paddingRight: "26px",
+              }}
+            >
+              <option value="recent">Mais recentes</option>
+              <option value="sources">Mais fontes</option>
+              <option value="divergence">Maior divergência</option>
+            </select>
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                fontSize: "12px", fontFamily: "'Inter', sans-serif",
+                color: "#555555", backgroundColor: "#ffffff",
+                border: "1px solid #e5e3df", borderRadius: "4px",
+                padding: "7px 12px", cursor: isFetching ? "not-allowed" : "pointer",
+                opacity: isFetching ? 0.6 : 1,
+                flexShrink: 0,
+              }}
+            >
+              <RefreshCw size={13} style={{ animation: isFetching ? "spin 1s linear infinite" : "none" }} />
+              Atualizar
+            </button>
+          </div>
         </div>
 
         {/* ── Responsive 2-column layout: main + sidebar ──────────────────── */}
@@ -411,7 +463,8 @@ export default function Home() {
                 borderRadius: "4px",
                 marginBottom: "20px",
                 overflow: "hidden",
-              }}>
+              }}
+              className="top-stories-grid">
                 {topStories.map((t, i) => (
                   <div key={t.id} style={{
                     padding: "12px 14px",
@@ -539,7 +592,30 @@ export default function Home() {
         {/* ── MOBILE SIDEBAR (below feed on small screens) ─────────────── */}
         <div className="home-sidebar-mobile" style={{ display: "none", paddingBottom: "32px" }}>
           <div style={{ height: "1px", backgroundColor: "#e5e3df", margin: "16px 0" }} />
-          <Sidebar blindspotTopics={blindspotTopics} />
+          <button
+            onClick={() => setSidebarExpanded((v) => !v)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%", padding: "10px 0",
+              background: "none", border: "none", cursor: "pointer",
+              fontFamily: "'Inter', sans-serif", fontSize: "11px",
+              fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
+              color: "#555555",
+            }}
+          >
+            <span>Ponto Cego &amp; Newsletter</span>
+            <span style={{
+              fontSize: "16px", color: "#aaa",
+              display: "inline-block",
+              transform: sidebarExpanded ? "rotate(180deg)" : "none",
+              transition: "transform 0.2s ease",
+            }}>&#8964;</span>
+          </button>
+          {sidebarExpanded && (
+            <div style={{ paddingBottom: "16px" }}>
+              <Sidebar blindspotTopics={blindspotTopics} />
+            </div>
+          )}
         </div>
 
       </div>

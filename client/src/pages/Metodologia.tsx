@@ -116,7 +116,7 @@ export default function Metodologia() {
             fontSize: "15px", color: "#555555", lineHeight: 1.7,
             fontFamily: "'Inter', sans-serif", marginBottom: "12px",
           }}>
-            O Viés Brasil é uma ferramenta de análise de cobertura jornalística, não um árbitro da verdade. Nosso objetivo é mostrar <strong>quais veículos cobriram cada assunto</strong> e <strong>como essa cobertura se distribui pelo espectro político</strong>, permitindo que você leia as notícias com mais consciência sobre as perspectivas que está consumindo.
+            O Contextual News é uma ferramenta de análise de cobertura jornalística, não um árbitro da verdade. Nosso objetivo é mostrar <strong>quais veículos cobriram cada assunto</strong> e <strong>como essa cobertura se distribui pelo espectro político</strong>, permitindo que você leia as notícias com mais consciência sobre as perspectivas que está consumindo.
           </p>
 
           <p style={{
@@ -282,11 +282,7 @@ export default function Metodologia() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-                            <a
-                              href={outlet.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
+                            <Link href={`/veiculo/${outlet.slug}`} style={{
                                 fontSize: "13px", fontWeight: 600,
                                 color: "#111111", fontFamily: "'Inter', sans-serif",
                                 textDecoration: "none",
@@ -295,7 +291,7 @@ export default function Metodologia() {
                               onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
                             >
                               {outlet.name}
-                            </a>
+                            </Link>
                             {(() => {
                               const entry = FACTUALITY_RATINGS[outlet.slug];
                               if (!entry) return null;

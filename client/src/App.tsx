@@ -9,6 +9,9 @@ import TopicDetail from "./pages/TopicDetail";
 import PontoCego from "./pages/PontoCego";
 import Metodologia from "./pages/Metodologia";
 import Busca from "./pages/Busca";
+import OutletProfile from "./pages/OutletProfile";
+import Planos from "./pages/Planos";
+import Admin from "./pages/Admin";
 
 function Router() {
   return (
@@ -18,6 +21,9 @@ function Router() {
       <Route path="/ponto-cego" component={PontoCego} />
       <Route path="/metodologia" component={Metodologia} />
       <Route path="/busca" component={Busca} />
+      <Route path="/veiculo/:slug" component={OutletProfile} />
+      <Route path="/planos" component={Planos} />
+      <Route path="/admin" component={Admin} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

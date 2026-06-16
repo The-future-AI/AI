@@ -128,12 +128,12 @@ export default function SpectrumBar({
         )}
       </div>
 
-      {showLabels && hasData && (
+      {showLabels && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 10px", marginTop: "5px" }}>
           {segments
-            .filter((s) => s.raw > 0)
             .map((seg) => {
-              const isDominant = seg.raw === dominant.pct;
+              const isDominant = hasData && seg.raw === dominant.pct && seg.raw > 0;
+              const isZero = seg.raw === 0;
               return (
                 <span
                   key={seg.key}
@@ -143,7 +143,7 @@ export default function SpectrumBar({
                     gap: "3px",
                     fontSize: "10.5px",
                     fontWeight: isDominant ? 700 : 500,
-                    color: isDominant ? seg.color : "#888888",
+                    color: isDominant ? seg.color : isZero ? "#cccccc" : "#888888",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -152,7 +152,7 @@ export default function SpectrumBar({
                       width: "6px",
                       height: "6px",
                       borderRadius: "50%",
-                      backgroundColor: seg.color,
+                      backgroundColor: isZero ? "#dddddd" : seg.color,
                       display: "inline-block",
                       flexShrink: 0,
                     }}

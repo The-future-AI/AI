@@ -328,3 +328,38 @@ export async function getTopicsCount(opts?: { category?: string; search?: string
     : await query;
   return Number(result[0]?.count || 0);
 }
+
+// ─── Outlet by slug ──────────────────────────────────────────────────────────
+
+export async function getOutletBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(mediaOutlets)
+    .where(eq(mediaOutlets.slug, slug))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function getRecentArticlesByOutlet(outletSlug: string, limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: articles.id,
+      title: articles.title,
+      summary: articles.summary,
+      url: articles.url,
+      imageUrl: articles.imageUrl,
+      spectrum: articles.spectrum,
+      category: articles.category,
+      publishedAt: articles.publishedAt,
+      topicId: articles.topicId,
+    })
+    .from(articles)
+    .leftJoin(mediaOutlets, eq(articles.outletId, mediaOutlets.id))
+    .where(eq(mediaOutlets.slug, outletSlug))
+    .orderBy(desc(articles.publishedAt))
+    .limit(limit);
+}

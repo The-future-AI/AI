@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
-const SITE_NAME = "Viés Brasil";
-const DEFAULT_TITLE = "Viés Brasil — Veja todos os lados de cada notícia";
+const SITE_NAME = "Contextual News";
+const DEFAULT_TITLE = "Contextual News — Veja todos os lados de cada notícia";
 const DEFAULT_DESCRIPTION =
-  "Agregador de notícias brasileiras com análise de viés político. Compare como esquerda, centro e direita cobrem os mesmos eventos.";
+  "Agregador de notícias brasileiras com análise contextual. Compare como esquerda, centro e direita cobrem os mesmos eventos.";
 
 export interface DocumentMeta {
   /** Título da página (sem o sufixo do site, que é adicionado automaticamente). */

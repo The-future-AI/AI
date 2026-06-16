@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, ExternalLink, Eye, Clock, Newspaper, AlertCircle } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye, Clock, Newspaper, AlertCircle, BookOpen, Scale, Globe, CheckCircle2, Layers } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Navbar } from "@/components/Navbar";
 import SpectrumBar from "@/components/SpectrumBar";
@@ -14,7 +14,6 @@ import {
   SPECTRUM_LABELS_FULL,
   CATEGORY_LABELS,
 } from "@/lib/spectrum";
-import { FACTUALITY_RATINGS } from "../../../server/outlets.config";
 import { ShareButtons } from "@/components/ShareButtons";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,111 +21,37 @@ import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-/* ── Factuality badge (avaliação de terceiros) ──────────────────────────────── */
-const FACTUALITY_LABELS: Record<string, string> = {
-  "muito-alta": "Fact. muito alta",
-  "alta": "Fact. alta",
-  "mista": "Fact. mista",
-};
-const FACTUALITY_STYLE: Record<string, { color: string; bg: string }> = {
-  "muito-alta": { color: "#1a7a4a", bg: "#e8f5ee" },
-  "alta": { color: "#2563a8", bg: "#e8f1f8" },
-  "mista": { color: "#b45309", bg: "#fdf0d8" },
-};
-
-function FactualityBadge({ slug }: { slug: string }) {
-  const entry = FACTUALITY_RATINGS[slug];
-  if (!entry) return null;
-  const label = FACTUALITY_LABELS[entry.rating] || entry.rating;
-  const style = FACTUALITY_STYLE[entry.rating] || { color: "#666", bg: "#f5f5f5" };
-  const abbrev = entry.source === "Media Bias/Fact Check" ? "MBFC" : entry.source;
+/* ── Section header ─────────────────────────────────────────────────────────── */
+function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <span
-      title={`Avaliação de factualidade segundo: ${entry.source}`}
-      style={{
-        display: "inline-block",
-        padding: "2px 7px",
-        borderRadius: "3px",
-        fontSize: "10px",
-        fontWeight: 600,
-        fontFamily: "'Inter', sans-serif",
-        color: style.color,
-        backgroundColor: style.bg,
-        border: `1px solid ${style.color}30`,
-        cursor: "help",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {label} · {abbrev}
-    </span>
+    <div style={{
+      display: "flex", alignItems: "center", gap: "8px",
+      marginBottom: "14px",
+    }}>
+      <span style={{ color: "#888888", display: "flex", alignItems: "center" }}>{icon}</span>
+      <p style={{
+        fontSize: "11px", fontWeight: 700, textTransform: "uppercase",
+        letterSpacing: "0.08em", color: "#888888", fontFamily: "'Inter', sans-serif",
+        margin: 0,
+      }}>
+        {label}
+      </p>
+    </div>
   );
 }
 
-/* ── 5-box spectrum legend (Ground.news style) ─────────────────────────────── */
-function SpectrumLegend({ data, sourcesBySpectrum }: {
-  data: SpectrumData;
-  sourcesBySpectrum?: Record<string, string[]>;
-}) {
-  const items = [
-    { key: "esquerda", label: "Esquerda", pct: data.leftPct },
-    { key: "centro-esquerda", label: "C-Esquerda", pct: data.centerLeftPct },
-    { key: "centro", label: "Centro", pct: data.centerPct },
-    { key: "centro-direita", label: "C-Direita", pct: data.centerRightPct },
-    { key: "direita", label: "Direita", pct: data.rightPct },
-  ];
-
-  const maxPct = Math.max(...items.map((i) => i.pct));
-
+/* ── Card wrapper ───────────────────────────────────────────────────────────── */
+function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div className="spectrum-legend-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px", marginTop: "14px" }}>
-      {items.map((item) => {
-        const isDominant = item.pct === maxPct && item.pct > 0;
-        const sources = sourcesBySpectrum?.[item.key] || [];
-        return (
-          <div
-            key={item.key}
-            style={{
-              backgroundColor: isDominant ? SPECTRUM_COLORS[item.key] : SPECTRUM_BG[item.key],
-              borderRadius: "4px",
-              padding: "10px 8px",
-              textAlign: "center",
-              border: `1px solid ${isDominant ? SPECTRUM_COLORS[item.key] : SPECTRUM_COLORS[item.key] + "30"}`,
-            }}
-          >
-            <div style={{
-              fontSize: "22px",
-              fontWeight: 900,
-              fontFamily: "'Playfair Display', Georgia, serif",
-              color: isDominant ? "#ffffff" : SPECTRUM_COLORS[item.key],
-              lineHeight: 1,
-              marginBottom: "3px",
-            }}>
-              {Math.round(item.pct)}%
-            </div>
-            <div style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              fontFamily: "'Inter', sans-serif",
-              color: isDominant ? "rgba(255,255,255,0.85)" : SPECTRUM_COLORS[item.key],
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
-              marginBottom: sources.length > 0 ? "5px" : 0,
-            }}>
-              {item.label}
-            </div>
-            {sources.length > 0 && (
-              <div style={{
-                fontSize: "9px",
-                color: isDominant ? "rgba(255,255,255,0.75)" : "#888888",
-                fontFamily: "'Inter', sans-serif",
-                lineHeight: 1.3,
-              }}>
-                {sources.slice(0, 3).join(", ")}
-              </div>
-            )}
-          </div>
-        );
-      })}
+    <div style={{
+      backgroundColor: "#ffffff",
+      border: "1px solid #e5e3df",
+      borderRadius: "6px",
+      padding: "clamp(14px, 4vw, 24px)",
+      marginBottom: "16px",
+      ...style,
+    }}>
+      {children}
     </div>
   );
 }
@@ -152,6 +77,65 @@ function SpectrumBadge({ spectrum }: { spectrum: string }) {
     }}>
       {label}
     </span>
+  );
+}
+
+/* ── 5-box spectrum legend ──────────────────────────────────────────────────── */
+function SpectrumLegend({ data, sourcesBySpectrum }: {
+  data: SpectrumData;
+  sourcesBySpectrum?: Record<string, string[]>;
+}) {
+  const items = [
+    { key: "esquerda", label: "Esquerda", pct: data.leftPct },
+    { key: "centro-esquerda", label: "C-Esquerda", pct: data.centerLeftPct },
+    { key: "centro", label: "Centro", pct: data.centerPct },
+    { key: "centro-direita", label: "C-Direita", pct: data.centerRightPct },
+    { key: "direita", label: "Direita", pct: data.rightPct },
+  ];
+  const maxPct = Math.max(...items.map((i) => i.pct));
+  return (
+    <div className="spectrum-legend-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px", marginTop: "14px" }}>
+      {items.map((item) => {
+        const isDominant = item.pct === maxPct && item.pct > 0;
+        const sources = sourcesBySpectrum?.[item.key] || [];
+        return (
+          <div key={item.key} style={{
+            backgroundColor: isDominant ? SPECTRUM_COLORS[item.key] : SPECTRUM_BG[item.key],
+            borderRadius: "4px",
+            padding: "10px 8px",
+            textAlign: "center",
+            border: `1px solid ${isDominant ? SPECTRUM_COLORS[item.key] : SPECTRUM_COLORS[item.key] + "30"}`,
+          }}>
+            <div style={{
+              fontSize: "22px", fontWeight: 900,
+              fontFamily: "'Playfair Display', Georgia, serif",
+              color: isDominant ? "#ffffff" : SPECTRUM_COLORS[item.key],
+              lineHeight: 1, marginBottom: "3px",
+            }}>
+              {Math.round(item.pct)}%
+            </div>
+            <div style={{
+              fontSize: "10px", fontWeight: 700,
+              fontFamily: "'Inter', sans-serif",
+              color: isDominant ? "rgba(255,255,255,0.85)" : SPECTRUM_COLORS[item.key],
+              textTransform: "uppercase", letterSpacing: "0.04em",
+              marginBottom: sources.length > 0 ? "5px" : 0,
+            }}>
+              {item.label}
+            </div>
+            {sources.length > 0 && (
+              <div style={{
+                fontSize: "9px",
+                color: isDominant ? "rgba(255,255,255,0.75)" : "#888888",
+                fontFamily: "'Inter', sans-serif", lineHeight: 1.3,
+              }}>
+                {sources.slice(0, 3).join(", ")}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -195,7 +179,6 @@ function ArticleCard({ article }: {
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Outlet logo + name + spectrum badge + time */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
           {article.outletName && (
             <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
@@ -206,11 +189,8 @@ function ArticleCard({ article }: {
                 size={18}
               />
               <span style={{
-                fontSize: "12px",
-                fontWeight: 700,
-                color: "#111111",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
+                fontSize: "12px", fontWeight: 700, color: "#111111",
+                textTransform: "uppercase", letterSpacing: "0.05em",
                 fontFamily: "'Inter', sans-serif",
               }}>
                 {article.outletName}
@@ -218,45 +198,28 @@ function ArticleCard({ article }: {
             </span>
           )}
           <SpectrumBadge spectrum={spectrum} />
-          {article.outletSlug && <FactualityBadge slug={article.outletSlug} />}
           <span style={{ fontSize: "11px", color: "#aaaaaa", fontFamily: "'Inter', sans-serif" }}>
             {formatDistanceToNow(publishedAt, { addSuffix: true, locale: ptBR })}
           </span>
         </div>
-
-        {/* Title */}
         <h4 style={{
           fontFamily: "'Playfair Display', Georgia, serif",
-          fontSize: "15px",
-          fontWeight: 700,
-          lineHeight: 1.35,
-          color: "#111111",
+          fontSize: "15px", fontWeight: 700, lineHeight: 1.35, color: "#111111",
           marginBottom: article.summary ? "5px" : 0,
-          display: "-webkit-box",
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
+          display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
           {article.title}
         </h4>
-
-        {/* Summary */}
         {article.summary && (
           <p style={{
-            fontSize: "13px",
-            color: "#666666",
-            lineHeight: 1.45,
+            fontSize: "13px", color: "#666666", lineHeight: 1.45,
             fontFamily: "'Inter', sans-serif",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>
             {article.summary}
           </p>
         )}
       </div>
-
       {article.imageUrl && (
         <div style={{ flexShrink: 0, width: 80, height: 70, overflow: "hidden", borderRadius: "3px" }}>
           <img
@@ -272,12 +235,29 @@ function ArticleCard({ article }: {
   );
 }
 
+/* ── LLM analysis skeleton ──────────────────────────────────────────────────── */
+function AnalysisSkeleton() {
+  return (
+    <Card>
+      <Skeleton style={{ height: 12, width: 120, marginBottom: 16, borderRadius: 3 }} />
+      <Skeleton style={{ height: 14, width: "90%", marginBottom: 8, borderRadius: 3 }} />
+      <Skeleton style={{ height: 14, width: "75%", marginBottom: 8, borderRadius: 3 }} />
+      <Skeleton style={{ height: 14, width: "60%", borderRadius: 3 }} />
+    </Card>
+  );
+}
+
 /* ── Main page ──────────────────────────────────────────────────────────────── */
 export default function TopicDetail() {
   const params = useParams<{ id: string }>();
   const topicId = parseInt(params.id || "0");
   const [activeFilter, setActiveFilter] = useState<string>("todos");
+
   const { data, isLoading, error } = trpc.topics.byId.useQuery({ id: topicId });
+  const { data: analysis, isLoading: analysisLoading } = trpc.topics.getStructuredAnalysis.useQuery(
+    { topicId },
+    { enabled: !!topicId && !!data }
+  );
 
   useDocumentMeta({
     title: data?.topic?.title,
@@ -286,9 +266,10 @@ export default function TopicDetail() {
     type: "article",
   });
 
+  /* ── Loading state ── */
   if (isLoading) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: "#f5f4f0" }}>
+      <div style={{ minHeight: "100vh", backgroundColor: "#f2f2f2" }}>
         <Navbar />
         <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 1.5rem" }}>
           <Skeleton style={{ height: 16, width: 100, marginBottom: 24, borderRadius: 3 }} />
@@ -300,7 +281,7 @@ export default function TopicDetail() {
               <Skeleton key={i} style={{ height: 80, borderRadius: 4 }} />
             ))}
           </div>
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} style={{ height: 80, marginBottom: 8, borderRadius: 4 }} />
           ))}
         </div>
@@ -308,9 +289,10 @@ export default function TopicDetail() {
     );
   }
 
+  /* ── Error state ── */
   if (error || !data) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: "#f5f4f0" }}>
+      <div style={{ minHeight: "100vh", backgroundColor: "#f2f2f2" }}>
         <Navbar />
         <div style={{ textAlign: "center", paddingTop: "80px" }}>
           <AlertCircle size={48} style={{ color: "#cccccc", margin: "0 auto 16px" }} />
@@ -344,36 +326,41 @@ export default function TopicDetail() {
     totalSources: topic.totalSources,
   };
 
-  // Build sourcesBySpectrum from articles (group outlet names by spectrum)
+  // Build sourcesBySpectrum
   const sourcesBySpectrum: Record<string, string[]> = {};
   for (const article of articles) {
     const s = article.spectrum || "centro";
     if (!sourcesBySpectrum[s]) sourcesBySpectrum[s] = [];
     const name = article.outletName || "";
-    if (name && !sourcesBySpectrum[s].includes(name)) {
-      sourcesBySpectrum[s].push(name);
-    }
+    if (name && !sourcesBySpectrum[s].includes(name)) sourcesBySpectrum[s].push(name);
   }
 
-  // Count per spectrum
+  // Spectrum counts for filter tabs
   const spectrumCounts: Record<string, number> = {};
   for (const s of SPECTRUM_ORDER) {
     spectrumCounts[s] = articles.filter((a) => a.spectrum === s).length;
   }
   const totalArticles = articles.length;
 
-  // Filter articles
+  // Filtered articles
   const filteredArticles = activeFilter === "todos"
     ? articles
     : articles.filter((a) => a.spectrum === activeFilter);
 
+  // Build headline comparison (one per spectrum)
+  const headlinesBySpectrum: { spectrum: string; title: string; outletName: string; url: string }[] = [];
+  for (const s of SPECTRUM_ORDER) {
+    const art = articles.find((a) => a.spectrum === s);
+    if (art) headlinesBySpectrum.push({ spectrum: s, title: art.title, outletName: art.outletName || "", url: art.url });
+  }
+
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f5f4f0" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#f2f2f2" }}>
       <Navbar />
 
       <div className="topic-detail-container" style={{ maxWidth: "860px", margin: "0 auto", padding: "28px 1.5rem 60px" }}>
 
-        {/* Back button */}
+        {/* ── Back button ── */}
         <Link href="/">
           <button style={{
             display: "flex", alignItems: "center", gap: "6px",
@@ -389,14 +376,10 @@ export default function TopicDetail() {
           </button>
         </Link>
 
-        {/* Topic header */}
-        <div style={{
-          backgroundColor: "#ffffff",
-          border: "1px solid #e5e3df",
-          borderRadius: "6px",
-          padding: "clamp(14px, 4vw, 28px)",
-          marginBottom: "20px",
-        }}>
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 1 — Cabeçalho da história
+        ═══════════════════════════════════════════════════════════════════ */}
+        <Card>
           {/* Category + blindspot */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
             <span style={{
@@ -420,21 +403,11 @@ export default function TopicDetail() {
           {/* Title */}
           <h1 style={{
             fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: "clamp(20px, 5vw, 28px)",
-            fontWeight: 700, lineHeight: 1.2, color: "#111111", marginBottom: "12px",
+            fontSize: "clamp(20px, 5vw, 30px)",
+            fontWeight: 700, lineHeight: 1.2, color: "#111111", marginBottom: "16px",
           }}>
             {topic.title}
           </h1>
-
-          {/* Summary */}
-          {topic.summary && (
-            <p style={{
-              fontSize: "15px", color: "#555555", lineHeight: 1.6,
-              fontFamily: "'Inter', sans-serif", marginBottom: "14px",
-            }}>
-              {topic.summary}
-            </p>
-          )}
 
           {/* Meta info */}
           <div style={{
@@ -465,139 +438,256 @@ export default function TopicDetail() {
             <SpectrumLegend data={spectrumData} sourcesBySpectrum={sourcesBySpectrum} />
           </div>
 
-          {/* Share row */}
+          {/* Share */}
           <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid #f0ede8" }}>
             <ShareButtons title={topic.title} />
           </div>
-        </div>
+        </Card>
 
-        {/* Blindspot alert */}
-        {topic.isBlindspot && topic.blindspotSpectrum && (
-          <div style={{
-            display: "flex", gap: "12px",
-            backgroundColor: "#fffbea", border: "1px solid #f0c040",
-            borderRadius: "6px", padding: "14px 18px", marginBottom: "20px",
-          }}>
-            <Eye size={18} style={{ color: "#d4a017", flexShrink: 0, marginTop: "1px" }} />
-            <div>
-              <h3 style={{
-                fontSize: "13px", fontWeight: 700, color: "#a07000",
-                fontFamily: "'Inter', sans-serif", marginBottom: "4px",
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 2 — O que aconteceu (resumo neutro)
+        ═══════════════════════════════════════════════════════════════════ */}
+        {(topic.summary || analysisLoading || analysis?.neutralSummary) && (
+          <Card>
+            <SectionLabel icon={<BookOpen size={14} />} label="O que aconteceu" />
+            {analysisLoading ? (
+              <>
+                <Skeleton style={{ height: 14, width: "95%", marginBottom: 8, borderRadius: 3 }} />
+                <Skeleton style={{ height: 14, width: "80%", borderRadius: 3 }} />
+              </>
+            ) : (
+              <p style={{
+                fontSize: "16px", color: "#222222", lineHeight: 1.7,
+                fontFamily: "'Inter', sans-serif", margin: 0,
               }}>
-                Ponto Cego Detectado
-              </h3>
-              <p style={{ fontSize: "13px", color: "#666666", lineHeight: 1.5, fontFamily: "'Inter', sans-serif" }}>
-                Esta notícia foi coberta predominantemente pela{" "}
-                <strong style={{ color: "#a07000" }}>
-                  {SPECTRUM_LABELS_FULL[topic.blindspotSpectrum]}
-                </strong>
-                . Veículos de outros espectros políticos deram pouca ou nenhuma atenção a este assunto.
+                {analysis?.neutralSummary || topic.summary}
               </p>
-            </div>
-          </div>
+            )}
+          </Card>
         )}
 
-        {/* Headline comparison section — unique feature vs Ground.news */}
-        {articles.length >= 2 && (() => {
-          // Build one representative article per spectrum (the first one)
-          const headlinesBySpectrum: { spectrum: string; title: string; outletName: string; url: string }[] = [];
-          for (const s of SPECTRUM_ORDER) {
-            const art = articles.find((a) => a.spectrum === s);
-            if (art) {
-              headlinesBySpectrum.push({
-                spectrum: s,
-                title: art.title,
-                outletName: art.outletName || "",
-                url: art.url,
-              });
-            }
-          }
-          if (headlinesBySpectrum.length < 2) return null;
-          return (
-            <div style={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #e5e3df",
-              borderRadius: "6px",
-              padding: "clamp(14px, 4vw, 22px)",
-              marginBottom: "20px",
-            }}>
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 3 — Coberto por (logos agrupados por espectro)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <Card>
+          <SectionLabel icon={<Globe size={14} />} label="Coberto por" />
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {SPECTRUM_ORDER.map((s) => {
+              const sources = sourcesBySpectrum[s];
+              if (!sources || sources.length === 0) return null;
+              const color = SPECTRUM_COLORS[s];
+              const bg = SPECTRUM_BG[s];
+              return (
+                <div key={s} style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                  <span style={{
+                    fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+                    letterSpacing: "0.06em", color, fontFamily: "'Inter', sans-serif",
+                    backgroundColor: bg, border: `1px solid ${color}40`,
+                    padding: "3px 8px", borderRadius: "3px", whiteSpace: "nowrap",
+                    minWidth: "90px", textAlign: "center",
+                  }}>
+                    {SPECTRUM_LABELS_FULL[s]}
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    {articles.filter((a) => a.spectrum === s).map((art) => (
+                      <span key={art.id} style={{
+                        display: "inline-flex", alignItems: "center", gap: "5px",
+                        fontSize: "12px", color: "#444444", fontFamily: "'Inter', sans-serif",
+                      }}>
+                        <OutletLogo
+                          name={art.outletName || ""}
+                          siteUrl={art.outletUrl}
+                          spectrumColor={color}
+                          size={18}
+                        />
+                        <span style={{ fontWeight: 500 }}>{art.outletName}</span>
+                      </span>
+                    )).filter((_, i, arr) => {
+                      // deduplicate by outletName
+                      const seen = new Set<string>();
+                      return arr.filter((el) => {
+                        const name = (el.key as string) || "";
+                        if (seen.has(name)) return false;
+                        seen.add(name);
+                        return true;
+                      }).indexOf(arr[i]) === i;
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 4 — Fatos em comum (LLM)
+        ═══════════════════════════════════════════════════════════════════ */}
+        {analysisLoading ? (
+          <AnalysisSkeleton />
+        ) : analysis?.commonFacts && analysis.commonFacts.length > 0 ? (
+          <Card>
+            <SectionLabel icon={<CheckCircle2 size={14} />} label="Fatos em comum" />
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {analysis.commonFacts.map((fact, i) => (
+                <li key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                  <span style={{
+                    flexShrink: 0, width: "20px", height: "20px",
+                    borderRadius: "50%", backgroundColor: "#f0f0f0",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "10px", fontWeight: 700, color: "#888",
+                    fontFamily: "'Inter', sans-serif", marginTop: "1px",
+                  }}>
+                    {i + 1}
+                  </span>
+                  <p style={{
+                    fontSize: "14px", color: "#333333", lineHeight: 1.6,
+                    fontFamily: "'Inter', sans-serif", margin: 0,
+                  }}>
+                    {fact}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ) : null}
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 5 — Diferenças de enquadramento (LLM + comparação de manchetes)
+        ═══════════════════════════════════════════════════════════════════ */}
+        {(analysisLoading || (analysis?.framingDifferences && analysis.framingDifferences.length > 0) || headlinesBySpectrum.length >= 2) && (
+          <Card>
+            <SectionLabel icon={<Scale size={14} />} label="Diferenças de enquadramento" />
+
+            {/* LLM framing notes */}
+            {analysisLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+                {[80, 70, 65].map((w, i) => (
+                  <Skeleton key={i} style={{ height: 60, borderRadius: 4 }} />
+                ))}
+              </div>
+            ) : analysis?.framingDifferences && analysis.framingDifferences.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: headlinesBySpectrum.length >= 2 ? "20px" : 0 }}>
+                {analysis.framingDifferences.map((item, i) => {
+                  const color = SPECTRUM_COLORS[item.spectrum] || "#888";
+                  const bg = SPECTRUM_BG[item.spectrum] || "#f5f5f5";
+                  return (
+                    <div key={i} style={{
+                      display: "flex", gap: "12px", alignItems: "flex-start",
+                      padding: "12px 14px",
+                      borderLeft: `3px solid ${color}`,
+                      backgroundColor: bg,
+                      borderRadius: "0 4px 4px 0",
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+                          letterSpacing: "0.06em", color, fontFamily: "'Inter', sans-serif",
+                          marginBottom: "4px",
+                        }}>
+                          {SPECTRUM_LABELS_FULL[item.spectrum] || item.spectrum}
+                          {item.outlet && (
+                            <span style={{ fontWeight: 400, color: "#999", marginLeft: "6px", textTransform: "none", letterSpacing: 0 }}>
+                              · {item.outlet}
+                            </span>
+                          )}
+                        </div>
+                        <p style={{
+                          fontSize: "13px", color: "#333333", lineHeight: 1.5,
+                          fontFamily: "'Inter', sans-serif", margin: 0,
+                        }}>
+                          {item.framing}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {/* Headline comparison — "Como cada lado titulou" */}
+            {headlinesBySpectrum.length >= 2 && (
+              <>
+                <p style={{
+                  fontSize: "11px", fontWeight: 700, textTransform: "uppercase",
+                  letterSpacing: "0.08em", color: "#aaaaaa", fontFamily: "'Inter', sans-serif",
+                  marginBottom: "10px",
+                }}>
+                  Como cada lado titulou esta notícia
+                </p>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${Math.min(headlinesBySpectrum.length, 3)}, 1fr)`,
+                  gap: "10px",
+                }} className="headline-comparison-grid">
+                  {headlinesBySpectrum.map((item) => (
+                    <a
+                      key={item.spectrum}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "block",
+                        padding: "12px 14px",
+                        borderTop: `3px solid ${SPECTRUM_COLORS[item.spectrum]}`,
+                        backgroundColor: SPECTRUM_BG[item.spectrum],
+                        borderRadius: "4px",
+                        textDecoration: "none",
+                        transition: "box-shadow 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+                    >
+                      <div style={{
+                        fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+                        letterSpacing: "0.06em", color: SPECTRUM_COLORS[item.spectrum],
+                        fontFamily: "'Inter', sans-serif", marginBottom: "6px",
+                      }}>
+                        {SPECTRUM_LABELS_FULL[item.spectrum]}
+                        {item.outletName && (
+                          <span style={{ fontWeight: 400, color: "#999", marginLeft: "6px", textTransform: "none", letterSpacing: 0 }}>
+                            · {item.outletName}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{
+                        fontSize: "13px", fontWeight: 600, color: "#111111",
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        lineHeight: 1.4, margin: 0,
+                        display: "-webkit-box", WebkitLineClamp: 4,
+                        WebkitBoxOrient: "vertical", overflow: "hidden",
+                      }}>
+                        {item.title}
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
+          </Card>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 6 — Fontes originais (artigos filtráveis por espectro)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <div>
+          {/* Section header + filter tabs */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            flexWrap: "wrap", gap: "10px", marginBottom: "12px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Layers size={14} style={{ color: "#888888" }} />
               <p style={{
                 fontSize: "11px", fontWeight: 700, textTransform: "uppercase",
                 letterSpacing: "0.08em", color: "#888888", fontFamily: "'Inter', sans-serif",
-                marginBottom: "14px",
+                margin: 0,
               }}>
-                Como cada lado titulou esta notícia
+                Fontes originais
               </p>
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${Math.min(headlinesBySpectrum.length, 3)}, 1fr)`,
-                gap: "10px",
-              }} className="headline-comparison-grid">
-                {headlinesBySpectrum.map((item) => (
-                  <a
-                    key={item.spectrum}
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "block",
-                      padding: "12px 14px",
-                      borderTop: `3px solid ${SPECTRUM_COLORS[item.spectrum]}`,
-                      backgroundColor: SPECTRUM_BG[item.spectrum],
-                      borderRadius: "4px",
-                      textDecoration: "none",
-                      transition: "box-shadow 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-                  >
-                    <div style={{
-                      fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
-                      letterSpacing: "0.06em", color: SPECTRUM_COLORS[item.spectrum],
-                      fontFamily: "'Inter', sans-serif", marginBottom: "6px",
-                    }}>
-                      {SPECTRUM_LABELS_FULL[item.spectrum]}
-                      {item.outletName && (
-                        <span style={{ fontWeight: 400, color: "#999", marginLeft: "6px", textTransform: "none", letterSpacing: 0 }}>
-                          · {item.outletName}
-                        </span>
-                      )}
-                    </div>
-                    <p style={{
-                      fontSize: "13px", fontWeight: 600, color: "#111111",
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      lineHeight: 1.4, margin: 0,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 4,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}>
-                      {item.title}
-                    </p>
-                  </a>
-                ))}
-              </div>
             </div>
-          );
-        })()}
-
-        {/* Articles section */}
-        <div>
-          {/* Section header + filter tabs — Ground.news style */}
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            flexWrap: "wrap", gap: "10px", marginBottom: "14px",
-          }}>
-            <p style={{
-              fontSize: "11px", fontWeight: 700, textTransform: "uppercase",
-              letterSpacing: "0.08em", color: "#888888", fontFamily: "'Inter', sans-serif",
-            }}>
-              Cobertura por veículo
-            </p>
 
             {/* Filter tabs */}
             <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-              {/* "Todos" tab */}
               <button
                 onClick={() => setActiveFilter("todos")}
                 style={{
@@ -612,8 +702,6 @@ export default function TopicDetail() {
               >
                 Todos ({totalArticles})
               </button>
-
-              {/* Spectrum filter tabs */}
               {SPECTRUM_ORDER.map((s) => {
                 const count = spectrumCounts[s] || 0;
                 if (count === 0) return null;
@@ -656,6 +744,71 @@ export default function TopicDetail() {
             </div>
           )}
         </div>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 7 — Contexto (LLM) + Ponto Cego + Newsletter
+        ═══════════════════════════════════════════════════════════════════ */}
+
+        {/* Blindspot alert */}
+        {topic.isBlindspot && topic.blindspotSpectrum && (
+          <div style={{
+            display: "flex", gap: "12px",
+            backgroundColor: "#fffbea", border: "1px solid #f0c040",
+            borderRadius: "6px", padding: "14px 18px", marginTop: "16px",
+          }}>
+            <Eye size={18} style={{ color: "#d4a017", flexShrink: 0, marginTop: "1px" }} />
+            <div>
+              <h3 style={{
+                fontSize: "13px", fontWeight: 700, color: "#a07000",
+                fontFamily: "'Inter', sans-serif", marginBottom: "4px",
+              }}>
+                Ponto Cego Detectado
+              </h3>
+              <p style={{ fontSize: "13px", color: "#666666", lineHeight: 1.5, fontFamily: "'Inter', sans-serif" }}>
+                Esta notícia foi coberta predominantemente pela{" "}
+                <strong style={{ color: "#a07000" }}>
+                  {SPECTRUM_LABELS_FULL[topic.blindspotSpectrum]}
+                </strong>
+                . Veículos de outros espectros políticos deram pouca ou nenhuma atenção a este assunto.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* LLM context */}
+        {analysisLoading ? (
+          <AnalysisSkeleton />
+        ) : analysis?.context ? (
+          <Card style={{ marginTop: "16px" }}>
+            <SectionLabel icon={<BookOpen size={14} />} label="Contexto" />
+            <p style={{
+              fontSize: "14px", color: "#444444", lineHeight: 1.7,
+              fontFamily: "'Inter', sans-serif", margin: 0,
+            }}>
+              {analysis.context}
+            </p>
+            {analysis.blindspotNote && (
+              <div style={{
+                marginTop: "14px", paddingTop: "14px",
+                borderTop: "1px solid #f0ede8",
+                fontSize: "13px", color: "#888888",
+                fontFamily: "'Inter', sans-serif", lineHeight: 1.6,
+                fontStyle: "italic",
+              }}>
+                <strong style={{ fontStyle: "normal", color: "#666" }}>Nota editorial: </strong>
+                {analysis.blindspotNote}
+              </div>
+            )}
+            <p style={{
+              marginTop: "12px",
+              fontSize: "11px", color: "#bbbbbb",
+              fontFamily: "'Inter', sans-serif",
+              borderTop: "1px solid #f5f5f5", paddingTop: "10px",
+            }}>
+              Análise gerada por IA com base nos artigos indexados. Pode conter imprecisões — verifique nas fontes originais.
+            </p>
+          </Card>
+        ) : null}
 
         {/* Newsletter banner */}
         <div style={{ marginTop: "28px" }}>

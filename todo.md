@@ -64,23 +64,66 @@
 - [x] Busca no navbar navega para /busca com query na URL
 - [x] Corrigir FAQ de Metodologia: R7/Jovem Pan sem RSS público estável (sub-representação da direita)
 
-## Transparência e Robustez (Sprint 5)
-- [x] Credibilidade factual por veículo (muito-alta/alta/mista/baixa), separada do viés
-- [x] Transparência de propriedade: grupo controlador + ano de fundação por veículo
-- [x] Schema: colunas factuality/ownership/foundedYear/description + migration aditiva
-- [x] Fonte única de verdade dos veículos (server/outlets.config.ts) usada por scraper, seed e frontend
-- [x] Script de seed idempotente (pnpm db:seed) — antes os veículos só existiam no banco da nuvem
-- [x] Expansão para 17 veículos, incl. mais à direita (Gazeta do Povo, Jovem Pan, Poder360) e alta factualidade (BBC Brasil, Nexo)
-- [x] Scraper passa a entender feeds Atom (<entry>, <link href>) além de RSS
-- [x] Lógica de viés/ponto cego extraída para módulo puro testável (server/analysis.ts); testes agora cobrem o código real
-- [x] Inclinação líquida (overallLean) e rótulo de viés agregado
-- [x] Metodologia data-driven: badges de factualidade + propriedade + fundação por veículo
-- [x] Detalhe do tópico: badge de factualidade por fonte
-- [x] README do projeto e .env.example; remoção de segredos do repositório
+## Commit 276f0cf — Logos, Acessibilidade, Tokens, SEO (Sprint 5)
+- [x] OutletLogo.tsx — favicon de cada veículo com fallback de inicial colorida
+- [x] spectrum.ts — fonte única de verdade para SPECTRUM_COLORS, SPECTRUM_LABELS, SPECTRUM_ABBR, SPECTRUM_BG, SPECTRUM_TEXT, getDominantSpectrum, outletLogo
+- [x] useDocumentMeta.ts — hook para título e meta tags OG/Twitter dinâmicos por página
+- [x] SpectrumBar.tsx — importa de spectrum.ts, aria-label acessível, abreviações E/CE/C/CD/D nas barras
+- [x] TopicCard.tsx — usa spectrum.ts centralizado, OutletLogo nos veículos
+- [x] Home.tsx — OutletLogo na lista de mídias, useDocumentMeta, lê OUTLETS de outlets.config.ts
+- [x] TopicDetail.tsx — OutletLogo por fonte, useDocumentMeta com título do tópico
+- [x] Busca.tsx — usa spectrum.ts centralizado, useDocumentMeta
+- [x] PontoCego.tsx — useDocumentMeta com título e descrição da página
+- [x] Metodologia.tsx — usa spectrum.ts centralizado, OutletLogo nos veículos
+- [x] index.html — meta tags OG/Twitter estáticas (og:title, og:description, twitter:card, etc.)
 
-## Frontend — Logos, Acessibilidade, Consistência e SEO (Sprint 6)
-- [x] Item 1: logos dos veículos (componente OutletLogo via favicon, com fallback de inicial colorida) em Home, detalhe do tópico, metodologia e cards
-- [x] Item 3: acessibilidade do viés — abreviações nas barras (lg) + aria-label descrevendo a distribuição (não depende só de cor / daltonismo)
-- [x] Item 5/7: tokens do espectro centralizados em client/src/lib/spectrum.ts; removidas as cópias em SpectrumBar, TopicCard, TopicDetail, Metodologia, Busca e Home
-- [x] Item 6: Home deixa de ter lista de veículos hardcoded (e desatualizada); passa a ler de server/outlets.config.ts
-- [x] Item 4: SEO — meta tags Open Graph/Twitter padrão no index.html + hook useDocumentMeta para título e tags dinâmicas por página/tópico
+## Commits c72be04 + 4584486 + 4b648e5 + 5800fb5 + Rename (Sprint 6)
+- [x] c72be04: Metodologia — citar fontes públicas (Manchetômetro, MBFC, Reuters Institute), suavizar linguagem, seção "Fontes e Referências"
+- [x] 4584486: Remover classificação de factualidade da interface e dos dados (redução de exposição jurídica)
+- [x] 4b648e5: Recriar factuality como atribuição a terceiros (MBFC) com FactualityBadge e link para perfil MBFC
+- [x] 5800fb5: ShareButtons.tsx + NewsletterSignup.tsx + tabela newsletter_subscribers + mutation newsletter.subscribe
+- [x] Renomear app de "Viés Brasil" para "Contextual News" (Navbar, useDocumentMeta, index.html, Metodologia)
+
+## Mobile-First Redesign (Sprint 7)
+- [x] Navbar mobile: hamburger menu elegante, busca colapsável, logo compacto
+- [x] Categorias: scroll horizontal no mobile sem quebra de linha
+- [x] TopicCard mobile: badges compactos em 2 linhas, thumbnail proporcional
+- [x] Tooltip nos logos dos veículos (nome + espectro ao hover/tap)
+- [x] Home mobile: coluna única, sidebar oculta por padrão com botão "Ver mais"
+- [x] Seletor de ordenação do feed (Mais recente / Mais fontes / Maior divergência)
+
+## Redesign TopicDetail — Layout Jornalístico (Sprint 8)
+- [ ] Procedure tRPC `topics.getStructuredAnalysis` que gera via LLM: fatos comuns, diferenças de enquadramento, contexto
+- [ ] TopicDetail: seção "O que aconteceu" (resumo neutro)
+- [ ] TopicDetail: seção "Reportado por" (logos + nomes dos veículos)
+- [ ] TopicDetail: seção "Fatos em comum" (lista de bullets)
+- [ ] TopicDetail: seção "Diferenças de enquadramento" (bullets por fonte)
+- [ ] TopicDetail: seção "Fontes originais" (links diretos para os artigos)
+- [ ] TopicDetail: seção "Contexto" (background, leis, casos anteriores)
+- [ ] Cache da análise no banco (coluna structured_analysis JSON) para não reprocessar a cada visita
+
+## Requisitos Pré-Lançamento — Metodologia Expandida (Sprint 8b)
+- [ ] Seleção de fontes: por que esses 17 veículos foram escolhidos
+- [ ] Inclinação política: como é determinada (IA + fontes de referência)
+- [ ] Papel da IA: o que faz e o que não faz
+- [ ] Revisão humana: quando há intervenção manual
+- [ ] Correções: formulário/e-mail para solicitar correções
+- [ ] Declaração de neutralidade
+
+## Roadmap Completo MVP (Sprint 9)
+- [ ] Story page: redesign TopicDetail com summary, source list, source comparison, framing notes, timeline, links originais
+- [ ] Source profile page (/veiculo/:slug): description, ownership, country, coverage topics, reliability notes, editorial tendency, articles indexed
+- [ ] Subscription page (/planos): Free / Student / Pro / Organisation
+- [ ] Admin panel (/admin): moderar bad clusters, bad summaries, wrong source metadata, sensitive stories, legal complaints
+- [ ] Metodologia expandida: source selection, political leaning, factuality, AI role, human review, corrections, neutrality statement
+
+## Sprint 9 — Páginas Novas e Expansão (Implementado)
+- [x] TopicDetail: reescrito com layout jornalístico de 7 seções (O que aconteceu, Reportado por, Fatos em comum, Diferenças de enquadramento, Fontes originais, Contexto, Análise de espectro)
+- [x] tRPC procedure `topics.getStructuredAnalysis` — análise estruturada via LLM com cache no banco
+- [x] Página /veiculo/:slug — perfil completo do veículo (logo, espectro, propriedade, feeds RSS, artigos recentes)
+- [x] tRPC procedure `outlets.bySlug` — dados do veículo + artigos recentes
+- [x] Página /planos — 4 tiers: Gratuito, Estudante, Pro, Organização (planos pagos "em breve")
+- [x] Página /admin — painel protegido por auth: tabs Tópicos, Veículos, Scraper
+- [x] Navbar: link "Planos" adicionado (desktop e mobile)
+- [x] Metodologia: nomes dos veículos agora são links para /veiculo/:slug
+- [x] App.tsx: rotas /veiculo/:slug, /planos, /admin adicionadas

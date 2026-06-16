@@ -7,9 +7,11 @@ import {
   SPECTRUM_ORDER,
   SPECTRUM_COLORS,
   SPECTRUM_LABELS,
+  SPECTRUM_ABBR,
   SPECTRUM_BG,
   CATEGORY_LABELS,
 } from "@/lib/spectrum";
+
 import { OUTLETS } from "../../../server/outlets.config";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -38,102 +40,10 @@ export interface TopicCardTopic {
   sourcesBySpectrum?: Record<string, string[]>;
 }
 
-// ─── Sources per spectrum row (Ground.news style) ─────────────────────────────
-function SourcesRow({ spectrumData, sourcesBySpectrum }: {
-  spectrumData: SpectrumData;
-  sourcesBySpectrum: Record<string, string[]>;
-}) {
-  const pcts: Record<string, number> = {
-    esquerda:          spectrumData.leftPct,
-    "centro-esquerda": spectrumData.centerLeftPct,
-    centro:            spectrumData.centerPct,
-    "centro-direita":  spectrumData.centerRightPct,
-    direita:           spectrumData.rightPct,
-  };
-  const total = Object.values(pcts).reduce((a, b) => a + b, 0);
-  if (total === 0) return null;
-
-  // Show all 5 spectra always (including 0%) — Ground.news style
-  const activeSpectra = SPECTRUM_ORDER;
-
-  return (
-    <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
-      {activeSpectra.map((spectrum) => {
-        const pct = Math.round(pcts[spectrum]);
-        const sources = sourcesBySpectrum[spectrum] || [];
-        const color = SPECTRUM_COLORS[spectrum];
-        const bg = SPECTRUM_BG[spectrum];
-        const label = SPECTRUM_LABELS[spectrum];
-
-        return (
-          <div key={spectrum} style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: "7px",
-            fontSize: "11px",
-            fontFamily: "'Inter', sans-serif",
-            lineHeight: 1.4,
-          }}>
-            {/* Percentage + label badge */}
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "3px",
-              backgroundColor: bg,
-              color: color,
-              border: `1px solid ${color}40`,
-              borderRadius: "3px",
-              padding: "1px 6px",
-              fontWeight: 700,
-              fontSize: "10px",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              minWidth: "76px",
-              justifyContent: "center",
-            }}>
-              <span style={{
-                width: "5px", height: "5px", borderRadius: "50%",
-                backgroundColor: color, display: "inline-block", flexShrink: 0,
-              }} />
-              {pct}% {label}
-            </span>
-            {/* Source logos + names */}
-            {sources.length > 0 && (
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: "5px",
-                color: "#777777", fontSize: "10.5px", lineHeight: 1.3, flexWrap: "wrap",
-              }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
-                  {sources.slice(0, 4).map((srcName) => (
-                    <OutletLogo
-                      key={srcName}
-                      name={srcName}
-                      siteUrl={OUTLET_URL_BY_NAME[srcName]}
-                      spectrumColor={color}
-                      size={14}
-                    />
-                  ))}
-                </span>
-                <span>
-                  {sources.slice(0, 3).join(", ")}
-                  {sources.length > 3 && (
-                    <span style={{ color: "#aaaaaa" }}> +{sources.length - 3}</span>
-                  )}
-                </span>
-              </span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Five-box spectrum summary (featured card) ────────────────────────────────
-function FiveBoxSpectrum({ spectrumData, sourcesBySpectrum }: {
-  spectrumData: SpectrumData;
-  sourcesBySpectrum: Record<string, string[]>;
-}) {
+// ─── Compact 5-badge spectrum row ─────────────────────────────────────────────
+// Shows all 5 spectra as small inline badges with percentage only.
+// Logos are shown separately below in SourcesLogos.
+function SpectrumBadges({ spectrumData }: { spectrumData: SpectrumData }) {
   const pcts: Record<string, number> = {
     esquerda:          spectrumData.leftPct,
     "centro-esquerda": spectrumData.centerLeftPct,
@@ -144,51 +54,102 @@ function FiveBoxSpectrum({ spectrumData, sourcesBySpectrum }: {
   const maxPct = Math.max(...Object.values(pcts));
 
   return (
-    <div>
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
-        gap: "4px",
-        marginBottom: "10px",
-      }}>
-        {SPECTRUM_ORDER.map((spectrum) => {
-          const pct = Math.round(pcts[spectrum]);
-          const isDominant = pcts[spectrum] === maxPct && pcts[spectrum] > 0;
-          const color = SPECTRUM_COLORS[spectrum];
-          const bg = SPECTRUM_BG[spectrum];
-          return (
-            <div key={spectrum} style={{
-              backgroundColor: isDominant ? color : bg,
-              borderRadius: "4px",
-              padding: "8px 4px",
-              textAlign: "center",
-              border: `1px solid ${isDominant ? color : color + "30"}`,
-            }}>
-              <div style={{
-                fontSize: "18px",
-                fontWeight: 900,
-                fontFamily: "'Playfair Display', Georgia, serif",
-                color: isDominant ? "#ffffff" : color,
-                lineHeight: 1,
-                marginBottom: "2px",
-              }}>
-                {pct}%
-              </div>
-              <div style={{
-                fontSize: "9px",
-                fontWeight: 700,
-                fontFamily: "'Inter', sans-serif",
-                color: isDominant ? "rgba(255,255,255,0.85)" : color,
-                textTransform: "uppercase" as const,
-                letterSpacing: "0.03em",
-              }}>
-                {SPECTRUM_LABELS[spectrum]}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <SourcesRow spectrumData={spectrumData} sourcesBySpectrum={sourcesBySpectrum} />
+    <div style={{
+      display: "flex",
+      gap: "4px",
+      flexWrap: "wrap",
+      marginTop: "6px",
+    }}>
+      {SPECTRUM_ORDER.map((spectrum) => {
+        const pct = Math.round(pcts[spectrum]);
+        const isDominant = pcts[spectrum] === maxPct && pcts[spectrum] > 0;
+        const color = SPECTRUM_COLORS[spectrum];
+        const bg = SPECTRUM_BG[spectrum];
+        const abbr = SPECTRUM_ABBR[spectrum];
+        const isEmpty = pct === 0;
+
+        return (
+          <span key={spectrum} style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "3px",
+            backgroundColor: isDominant ? color : (isEmpty ? "#f5f5f5" : bg),
+            color: isDominant ? "#ffffff" : (isEmpty ? "#cccccc" : color),
+            border: `1px solid ${isDominant ? color : (isEmpty ? "#e0e0e0" : color + "50")}`,
+            borderRadius: "3px",
+            padding: "2px 6px",
+            fontWeight: 700,
+            fontSize: "10px",
+            fontFamily: "'Inter', sans-serif",
+            whiteSpace: "nowrap",
+          }}>
+            <span style={{
+              width: "5px", height: "5px", borderRadius: "50%",
+              backgroundColor: isDominant ? "rgba(255,255,255,0.8)" : (isEmpty ? "#cccccc" : color),
+              display: "inline-block", flexShrink: 0,
+            }} />
+            {pct}% {abbr}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Source logos row (compact, grouped by spectrum) ──────────────────────────
+// Shows outlet logos grouped by spectrum, clean and separate from percentages.
+function SourcesLogos({
+  sourcesBySpectrum,
+  maxLogos = 7,
+}: {
+  sourcesBySpectrum: Record<string, string[]>;
+  maxLogos?: number;
+}) {
+  const hasAnySources = SPECTRUM_ORDER.some(
+    (s) => (sourcesBySpectrum[s] || []).length > 0,
+  );
+  if (!hasAnySources) return null;
+
+  // Collect all sources with their spectrum color and label
+  const allSources: { name: string; color: string; label: string }[] = [];
+  SPECTRUM_ORDER.forEach((spectrum) => {
+    const sources = sourcesBySpectrum[spectrum] || [];
+    sources.forEach((name) => {
+      allSources.push({
+        name,
+        color: SPECTRUM_COLORS[spectrum],
+        label: SPECTRUM_LABELS[spectrum],
+      });
+    });
+  });
+
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "3px",
+      marginTop: "7px",
+      flexWrap: "wrap",
+    }}>
+      {allSources.slice(0, maxLogos).map(({ name, color, label }) => (
+        <OutletLogo
+          key={name}
+          name={name}
+          siteUrl={OUTLET_URL_BY_NAME[name]}
+          spectrumColor={color}
+          spectrumLabel={label}
+          size={18}
+        />
+      ))}
+      {allSources.length > maxLogos && (
+        <span style={{
+          fontSize: "10px", color: "#aaa",
+          fontFamily: "'Inter', sans-serif",
+          padding: "0 2px",
+        }}>
+          +{allSources.length - maxLogos}
+        </span>
+      )}
     </div>
   );
 }
@@ -280,10 +241,11 @@ function FeaturedCard({ topic }: { topic: TopicCardTopic }) {
           {/* Spectrum bar */}
           <SpectrumBar data={spectrumData} size="md" showLabels={false} showCoverage={false} />
 
-          {/* 5-box + sources */}
-          <div style={{ marginTop: "12px" }}>
-            <FiveBoxSpectrum spectrumData={spectrumData} sourcesBySpectrum={sourcesBySpectrum} />
-          </div>
+          {/* 5 badges */}
+          <SpectrumBadges spectrumData={spectrumData} />
+
+          {/* Source logos */}
+          <SourcesLogos sourcesBySpectrum={sourcesBySpectrum} />
         </div>
       </div>
     </Link>
@@ -338,8 +300,12 @@ function TopStoryCard({ topic, rank }: { topic: TopicCardTopic; rank: number }) 
           }}>
             {topic.title}
           </h4>
+          {/* Spectrum bar */}
           <SpectrumBar data={spectrumData} size="sm" showLabels={false} showCoverage={false} />
-          <SourcesRow spectrumData={spectrumData} sourcesBySpectrum={sourcesBySpectrum} />
+          {/* 5 compact badges */}
+          <SpectrumBadges spectrumData={spectrumData} />
+          {/* Logos row */}
+          <SourcesLogos sourcesBySpectrum={sourcesBySpectrum} />
           <p style={{ fontSize: "10px", color: "#aaa", fontFamily: "'Inter', sans-serif", marginTop: "5px" }}>
             {topic.totalSources} {topic.totalSources === 1 ? "fonte" : "fontes"} · {formatDistanceToNow(publishedAt, { addSuffix: true, locale: ptBR })}
           </p>
@@ -406,8 +372,15 @@ function GridCard({ topic }: { topic: TopicCardTopic }) {
           {/* Spectrum bar */}
           <SpectrumBar data={spectrumData} size="sm" showLabels={false} showCoverage={false} />
 
-          {/* Sources per spectrum — Ground.news style */}
-          <SourcesRow spectrumData={spectrumData} sourcesBySpectrum={sourcesBySpectrum} />
+          {/* 5 compact badges */}
+          <SpectrumBadges spectrumData={spectrumData} />
+
+          {/* Logos + source names */}
+          <SourcesLogos sourcesBySpectrum={sourcesBySpectrum} />
+
+          <p style={{ fontSize: "10px", color: "#aaa", fontFamily: "'Inter', sans-serif", marginTop: "5px" }}>
+            {topic.totalSources} {topic.totalSources === 1 ? "fonte" : "fontes"}
+          </p>
         </div>
 
         {/* Thumbnail */}
@@ -415,18 +388,21 @@ function GridCard({ topic }: { topic: TopicCardTopic }) {
           <img
             src={topic.imageUrl}
             alt={topic.title}
+            className="grid-card-thumb"
             style={{
               width: "88px", height: "88px", objectFit: "cover",
-              borderRadius: "3px", flexShrink: 0, background: "#e5e3df",
+              borderRadius: "4px", flexShrink: 0, background: "#e5e3df",
             }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
         ) : (
-          <div style={{
-            width: "88px", height: "88px", borderRadius: "3px",
-            flexShrink: 0, background: "#e8e6e1",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
+          <div
+            className="grid-card-thumb"
+            style={{
+              width: "88px", height: "88px", borderRadius: "4px",
+              flexShrink: 0, background: "#e8e6e1",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
             <div style={{ width: 24, height: 3, background: dominant.color, borderRadius: 2, opacity: 0.5 }} />
           </div>
         )}
@@ -481,18 +457,16 @@ function BlindspotCard({ topic }: { topic: TopicCardTopic }) {
   );
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
-interface TopicCardProps {
-  topic: TopicCardTopic;
-  variant?: "top-story" | "featured" | "grid" | "blindspot";
-  rank?: number;
-}
+// ─── Public exports ───────────────────────────────────────────────────────────
+export { FeaturedCard, TopStoryCard, GridCard, BlindspotCard };
 
-export function TopicCard({ topic, variant = "grid", rank = 1 }: TopicCardProps) {
+export function TopicCard({ topic, variant = "grid", rank }: {
+  topic: TopicCardTopic;
+  variant?: "featured" | "top-story" | "grid" | "blindspot";
+  rank?: number;
+}) {
   if (variant === "featured") return <FeaturedCard topic={topic} />;
-  if (variant === "top-story") return <TopStoryCard topic={topic} rank={rank} />;
+  if (variant === "top-story") return <TopStoryCard topic={topic} rank={rank ?? 1} />;
   if (variant === "blindspot") return <BlindspotCard topic={topic} />;
   return <GridCard topic={topic} />;
 }
-
-export default TopicCard;

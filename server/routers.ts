@@ -11,12 +11,15 @@ import {
   getArticlesByTopic,
   searchArticles,
   getAllOutlets,
+  getOutletBySlug,
+  getRecentArticlesByOutlet,
   getLatestScrapeJob,
   getTopicsCount,
   getTopicsWithSources,
   addNewsletterSubscriber,
 } from "./db";
 import { runPipeline } from "./pipeline";
+import { invokeLLM } from "./_core/llm";
 
 export const appRouter = router({
   system: systemRouter,
@@ -57,6 +60,64 @@ export const appRouter = router({
         return { topic, articles };
       }),
 
+    getStructuredAnalysis: publicProcedure
+      .input(z.object({ topicId: z.number() }))
+      .query(async ({ input }) => {
+        const topic = await getTopicById(input.topicId);
+        if (!topic) return null;
+        const articles = await getArticlesByTopic(input.topicId);
+        if (articles.length === 0) return null;
+
+        // Build article summaries for LLM
+        const articleSummaries = articles
+          .slice(0, 20)
+          .map((a) => `- [${a.outletName} / ${a.spectrum}] ${a.title}${a.summary ? ": " + a.summary.slice(0, 200) : ""}`)
+          .join("\n");
+
+        const prompt = `Você é um jornalista analítico neutro. Analise as seguintes manchetes e resumos sobre o mesmo tópico publicados por diferentes veículos brasileiros com diferentes posições políticas.
+
+TÓPICO: ${topic.title}
+
+ARTIGOS:
+${articleSummaries}
+
+Gere uma análise estruturada em JSON com exatamente estes campos:
+{
+  "neutralSummary": "Resumo neutro de 2-3 frases do que aconteceu, sem julgamento político",
+  "commonFacts": ["Fato 1 confirmado por múltiplas fontes", "Fato 2..."],
+  "framingDifferences": [
+    {"outlet": "Nome do veículo", "spectrum": "espectro", "framing": "Como este veículo enquadrou a notícia em 1 frase"}
+  ],
+  "context": "1-2 frases de contexto histórico ou legal relevante",
+  "blindspotNote": "Nota sobre o que algum espectro ignorou ou enfatizou demais (ou null se não houver)"
+}
+
+Responda APENAS com o JSON, sem markdown.`;
+
+        try {
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: "Você é um analista de mídia neutro especializado em jornalismo brasileiro." },
+              { role: "user", content: prompt },
+            ],
+            response_format: { type: "json_object" },
+          });
+          const rawContent = response.choices[0]?.message?.content;
+          const content = typeof rawContent === "string" ? rawContent : null;
+          if (!content) return null;
+          return JSON.parse(content) as {
+            neutralSummary: string;
+            commonFacts: string[];
+            framingDifferences: { outlet: string; spectrum: string; framing: string }[];
+            context: string;
+            blindspotNote: string | null;
+          };
+        } catch (e) {
+          console.error("[LLM] Structured analysis error:", e);
+          return null;
+        }
+      }),
+
     blindspot: publicProcedure
       .input(z.object({ limit: z.number().min(1).max(50).default(6) }))
       .query(async ({ input }) => {
@@ -82,6 +143,15 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       return getAllOutlets();
     }),
+
+    bySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        const outlet = await getOutletBySlug(input.slug);
+        if (!outlet) return null;
+        const recentArticles = await getRecentArticlesByOutlet(input.slug, 20);
+        return { outlet, recentArticles };
+      }),
   }),
 
   newsletter: router({
