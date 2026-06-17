@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, X, Eye, Menu, BookOpen, ChevronRight } from "lucide-react";
+import { Search, X, Eye, Menu, BookOpen, ChevronRight, Vote } from "lucide-react";
 
 const CATEGORIES = [
   { id: "todos", label: "Início" },
@@ -191,6 +191,21 @@ export function Navbar({
                 }}>
                   <BookOpen size={13} />
                   Metodologia
+                </span>
+              </Link>
+              <Link href="/eleicoes">
+                <span style={{
+                  display: "flex", alignItems: "center", gap: "5px",
+                  fontSize: "13px", fontWeight: 500,
+                  color: location === "/eleicoes" ? "#c084fc" : "rgba(255,255,255,0.55)",
+                  padding: "6px 12px", borderRadius: "4px", cursor: "pointer",
+                  fontFamily: "'Inter', sans-serif",
+                  backgroundColor: location === "/eleicoes" ? "rgba(192,132,252,0.1)" : "transparent",
+                  whiteSpace: "nowrap",
+                  transition: "color 0.15s ease, background 0.15s ease",
+                }}>
+                  <Vote size={13} />
+                  Eleições 2026
                 </span>
               </Link>
               <Link href="/planos">
@@ -429,6 +444,22 @@ export function Navbar({
                 Metodologia
               </span>
               {location === "/metodologia" && <ChevronRight size={14} style={{ color: "rgba(255,255,255,0.3)" }} />}
+            </div>
+          </Link>
+          <Link href="/eleicoes" onClick={() => setMenuOpen(false)}>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "13px 20px", fontSize: "15px", fontWeight: 500,
+              color: location === "/eleicoes" ? "#c084fc" : "rgba(255,255,255,0.65)",
+              fontFamily: "'Inter', sans-serif", cursor: "pointer",
+              backgroundColor: location === "/eleicoes" ? "rgba(192,132,252,0.06)" : "transparent",
+              transition: "background 0.1s ease",
+            }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Vote size={15} />
+                Eleições 2026
+              </span>
+              {location === "/eleicoes" && <ChevronRight size={14} style={{ color: "rgba(192,132,252,0.4)" }} />}
             </div>
           </Link>
           <Link href="/planos" onClick={() => setMenuOpen(false)}>

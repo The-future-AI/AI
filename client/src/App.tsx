@@ -12,6 +12,7 @@ import Busca from "./pages/Busca";
 import OutletProfile from "./pages/OutletProfile";
 import Planos from "./pages/Planos";
 import Admin from "./pages/Admin";
+import Eleicoes from "./pages/Eleicoes";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/veiculo/:slug" component={OutletProfile} />
       <Route path="/planos" component={Planos} />
       <Route path="/admin" component={Admin} />
+      <Route path="/eleicoes" component={Eleicoes} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -7,4 +7,11 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  // Stripe billing (optional — app degrades gracefully when absent)
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? "",
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  stripePriceEstudante: process.env.STRIPE_PRICE_ESTUDANTE ?? "",
+  stripePricePro: process.env.STRIPE_PRICE_PRO ?? "",
+  // Public base URL used for Stripe success/cancel redirects
+  appBaseUrl: process.env.APP_BASE_URL ?? "",
 };

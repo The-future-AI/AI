@@ -29,34 +29,6 @@
       "when": 1781466778603,
       "tag": "0003_pale_white_tiger",
       "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1781697354323,
-      "tag": "0004_lean_mantis",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1781699161973,
-      "tag": "0005_rapid_la_nuit",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1781700325535,
-      "tag": "0006_spooky_loa",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "5",
-      "when": 1781701716364,
-      "tag": "0007_lonely_blazing_skull",
-      "breakpoints": true
     }
   ]
 }

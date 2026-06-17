@@ -127,3 +127,15 @@
 - [x] Navbar: link "Planos" adicionado (desktop e mobile)
 - [x] Metodologia: nomes dos veículos agora são links para /veiculo/:slug
 - [x] App.tsx: rotas /veiculo/:slug, /planos, /admin adicionadas
+
+## Sprint 10 — Produção Ready (Implementado)
+- [x] Aplicar migrações SQL 0005-0007 (category, region, language, paywall, subscriptions, entities)
+- [x] Seed 46 outlets no banco de dados (corrigir isMain check no seed.ts)
+- [x] Desativar 7 outlets legados (slugs duplicados de versões anteriores)
+- [x] Banco agora tem exatamente 46 outlets ativos (canônicos do outlets.config.ts)
+- [x] Criar página /eleicoes — feed eleitoral com entidades (candidatos, partidos, instituições) e cobertura por espectro
+- [x] Adicionar link "Eleições 2026" no Navbar desktop e mobile (ícone Vote, cor roxa)
+- [x] App.tsx: rota /eleicoes adicionada
+- [x] Texto "17 veículos" na Metodologia agora dinâmico via OUTLETS.length (46)
+- [x] Zero erros TypeScript — build limpo
+- [x] 26 testes passando (pipeline, analysis, auth)

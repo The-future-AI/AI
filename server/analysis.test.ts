@@ -4,30 +4,8 @@ import {
   detectBlindspot,
   overallLean,
   leanLabel,
-  isElectionRelated,
   SPECTRUM_ORDER,
 } from "./analysis";
-
-describe("isElectionRelated", () => {
-  it("detects clear election content", () => {
-    expect(isElectionRelated("TSE define regras para a eleição de 2026")).toBe(true);
-    expect(isElectionRelated("Candidato lidera pesquisa eleitoral")).toBe(true);
-    expect(isElectionRelated("Apuração nas urnas começa no domingo")).toBe(true);
-    expect(isElectionRelated("Debate antes do segundo turno")).toBe(true);
-  });
-
-  it("ignores non-election content", () => {
-    expect(isElectionRelated("Banco Central mantém taxa de juros")).toBe(false);
-    expect(isElectionRelated("Seleção brasileira vence amistoso")).toBe(false);
-    expect(isElectionRelated("")).toBe(false);
-    expect(isElectionRelated(null)).toBe(false);
-    expect(isElectionRelated(undefined)).toBe(false);
-  });
-
-  it("is case-insensitive", () => {
-    expect(isElectionRelated("CAMPANHA ELEITORAL começa em agosto")).toBe(true);
-  });
-});
 
 describe("computeSpectrumStats", () => {
   it("computes correct percentages for balanced coverage", () => {

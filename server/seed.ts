@@ -58,10 +58,13 @@ export async function seedOutlets(): Promise<{ upserted: number }> {
   return { upserted };
 }
 
-// Executa diretamente quando chamado via `pnpm db:seed`.
+// Executa diretamente quando chamado via `pnpm db:seed` ou `npx tsx server/seed.ts`.
+// tsx rewrites import.meta.url so we also check process.argv[1].
+const argv1 = process.argv[1] ?? "";
 const isMain =
-  typeof process !== "undefined" &&
-  import.meta.url === `file://${process.argv[1]}`;
+  import.meta.url === `file://${argv1}` ||
+  argv1.endsWith("seed.ts") ||
+  argv1.endsWith("seed.js");
 
 if (isMain) {
   seedOutlets()

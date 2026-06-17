@@ -496,7 +496,7 @@ export default function Metodologia() {
           {[
             {
               q: "Por que alguns veículos não aparecem?",
-              a: "Monitoramos veículos que disponibilizam feeds RSS públicos. A cobertura abrange hoje 17 veículos em todo o espectro — de Brasil de Fato e The Intercept à esquerda até Gazeta do Povo e Jovem Pan à direita —, buscando equilíbrio entre os lados. Sugestões de novos veículos com RSS público são bem-vindas.",
+              a: `Monitoramos veículos que disponibilizam feeds RSS públicos. A cobertura abrange hoje ${OUTLETS.length} veículos em todo o espectro — de Brasil de Fato e The Intercept à esquerda até Gazeta do Povo e Jovem Pan à direita —, buscando equilíbrio entre os lados. Sugestões de novos veículos com RSS público são bem-vindas.`,
             },
             {
               q: "Com que frequência as notícias são atualizadas?",
