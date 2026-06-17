@@ -364,9 +364,22 @@ export async function runPipeline(): Promise<{
       }
     }
 
-    // Step 4: Group articles into topics
+    // Step 4: Group articles into topics (in batches of 50 to avoid LLM token limits)
     console.log("[Pipeline] Grouping articles into topics...");
-    const topicGroups = await groupArticlesIntoTopics(unprocessed);
+    const GROUP_BATCH_SIZE = 50;
+    const allTopicGroups: TopicGroup[] = [];
+    for (let i = 0; i < unprocessed.length; i += GROUP_BATCH_SIZE) {
+      const groupBatch = unprocessed.slice(i, i + GROUP_BATCH_SIZE);
+      console.log(`[Pipeline] Grouping batch ${Math.floor(i / GROUP_BATCH_SIZE) + 1} (${groupBatch.length} articles)...`);
+      // Re-index articleIndices to be relative to the full unprocessed array
+      const batchGroups = await groupArticlesIntoTopics(groupBatch);
+      // Offset the articleIndices back to the full array
+      const offset = i;
+      for (const g of batchGroups) {
+        allTopicGroups.push({ ...g, articleIndices: g.articleIndices.map(idx => idx + offset) });
+      }
+    }
+    const topicGroups = allTopicGroups;
     console.log(`[Pipeline] Created ${topicGroups.length} topic groups`);
 
     // Step 5: Save topics and update articles

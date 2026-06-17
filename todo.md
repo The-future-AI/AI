@@ -146,3 +146,12 @@
 - [x] Fix: getTopics() agora força limit e offset como inteiros com Math.floor(Number(...))
 - [x] Feed principal agora exibe 97 tópicos corretamente
 - [x] Zero erros TypeScript após o fix
+
+## Sprint 12 — Pipeline de Scraping Funcional (Implementado)
+- [x] Diagnóstico: pipeline estava coletando artigos mas falhando no agrupamento LLM por JSON truncado
+- [x] Fix: groupArticlesIntoTopics agora processa em batches de 50 artigos (evita limite de tokens do LLM)
+- [x] Fix: articleIndices re-indexados corretamente para o array completo após batching
+- [x] Pipeline executado com sucesso: 1.819 artigos coletados, 100 processados, 100 tópicos criados
+- [x] Banco agora tem 197 tópicos (97 anteriores + 100 novos) e feed atualizado
+- [x] Script server/run-pipeline-ts.ts criado para disparar pipeline manualmente via CLI
+- [x] Zero erros TypeScript após correção
