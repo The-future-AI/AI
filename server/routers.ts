@@ -2,7 +2,12 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import {
+  publicProcedure,
+  protectedProcedure,
+  adminProcedure,
+  router,
+} from "./_core/trpc";
 import {
   getTopics,
   getTopicById,
@@ -18,8 +23,53 @@ import {
   getTopicsCount,
   getTopicsWithSources,
   addNewsletterSubscriber,
+  setUserSubscription,
 } from "./db";
 import { runPipeline } from "./pipeline";
+import {
+  effectiveTier,
+  hasFeature,
+  type Tier,
+  type Feature,
+} from "@shared/entitlements";
+import {
+  isBillingConfigured,
+  createCheckoutSession,
+  tierToPriceId,
+} from "./payments";
+import type { StructuredAnalysis } from "../drizzle/schema";
+
+/** Tipo retornado ao cliente: análise com bloqueios por plano aplicados. */
+export type GatedAnalysis = StructuredAnalysis & {
+  locked: Record<Feature, boolean>;
+  tier: Tier;
+};
+
+/**
+ * Remove da resposta os campos pagos quando o plano do usuário não dá direito,
+ * e informa quais recursos estão bloqueados (para o cliente exibir paywall).
+ * O servidor é a autoridade — dados pagos nunca chegam ao cliente sem direito.
+ */
+function gateAnalysis(full: StructuredAnalysis, tier: Tier): GatedAnalysis {
+  const canFraming = hasFeature(tier, "framingAnalysis");
+  const canContext = hasFeature(tier, "contextSection");
+  return {
+    neutralSummary: full.neutralSummary,
+    commonFacts: full.commonFacts,
+    framingDifferences: canFraming ? full.framingDifferences : [],
+    context: canContext ? full.context : "",
+    blindspotNote: full.blindspotNote,
+    locked: {
+      framingAnalysis: !canFraming,
+      contextSection: !canContext,
+      timeline: !hasFeature(tier, "timeline"),
+      export: !hasFeature(tier, "export"),
+      alerts: !hasFeature(tier, "alerts"),
+      topicTracking: !hasFeature(tier, "topicTracking"),
+    },
+    tier,
+  };
+}
 import { invokeLLM } from "./_core/llm";
 
 export const appRouter = router({
@@ -63,14 +113,15 @@ export const appRouter = router({
 
     getStructuredAnalysis: publicProcedure
       .input(z.object({ topicId: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
+        const tier = effectiveTier(ctx.user);
         const topic = await getTopicById(input.topicId);
         if (!topic) return null;
 
         // Cache: análise é determinística por tópico — gera uma vez e reaproveita,
         // evitando uma chamada de LLM a cada visualização da página.
         if (topic.structuredAnalysis) {
-          return topic.structuredAnalysis;
+          return gateAnalysis(topic.structuredAnalysis, tier);
         }
 
         const articles = await getArticlesByTopic(input.topicId);
@@ -122,7 +173,7 @@ Responda APENAS com o JSON, sem markdown.`;
           };
           // Grava no cache para as próximas visualizações (best-effort).
           await saveTopicAnalysis(input.topicId, analysis);
-          return analysis;
+          return gateAnalysis(analysis, tier);
         } catch (e) {
           console.error("[LLM] Structured analysis error:", e);
           return null;
@@ -188,6 +239,68 @@ Responda APENAS com o JSON, sem markdown.`;
           success: true as const,
           message: "Inscrição confirmada! Você receberá nosso resumo.",
         };
+      }),
+  }),
+
+  billing: router({
+    /** Situação atual de billing + plano do usuário logado. */
+    status: publicProcedure.query(({ ctx }) => {
+      return {
+        configured: isBillingConfigured(),
+        tier: effectiveTier(ctx.user),
+        rawTier: (ctx.user?.subscriptionTier as Tier) ?? "free",
+        subscriptionStatus: ctx.user?.subscriptionStatus ?? "none",
+      };
+    }),
+
+    /** Cria uma sessão de checkout para um plano vendável (estudante/pro). */
+    createCheckout: protectedProcedure
+      .input(z.object({ tier: z.enum(["estudante", "pro"]) }))
+      .mutation(async ({ input, ctx }) => {
+        if (!isBillingConfigured() || !tierToPriceId(input.tier)) {
+          return {
+            configured: false as const,
+            message:
+              "Pagamentos ainda não estão configurados. Em breve você poderá assinar — ou fale conosco para planos institucionais.",
+          };
+        }
+        try {
+          const { url } = await createCheckoutSession({
+            tier: input.tier,
+            userId: ctx.user.id,
+            openId: ctx.user.openId,
+            email: ctx.user.email,
+            customerId: ctx.user.stripeCustomerId,
+          });
+          return { configured: true as const, url };
+        } catch (e) {
+          console.error("[Billing] createCheckout error:", e);
+          return {
+            configured: true as const,
+            url: null,
+            message: "Não foi possível iniciar o checkout. Tente novamente.",
+          };
+        }
+      }),
+
+    /**
+     * Concessão manual de plano (admin) — usado para clientes institucionais e
+     * beta testers antes da cobrança automática estar 100% ativa.
+     */
+    grantTier: adminProcedure
+      .input(
+        z.object({
+          openId: z.string().min(1),
+          tier: z.enum(["free", "estudante", "pro", "organizacao"]),
+          status: z.enum(["none", "active", "canceled", "past_due"]).default("active"),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const ok = await setUserSubscription(input.openId, {
+          tier: input.tier,
+          status: input.tier === "free" ? "none" : input.status,
+        });
+        return { success: ok };
       }),
   }),
 

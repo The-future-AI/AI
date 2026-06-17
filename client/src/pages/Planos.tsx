@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Check, Lock, Zap, Users, Building2, Star } from "lucide-react";
+import { ArrowLeft, Check, Lock, Zap, Building2, Star } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 /* ── Plan data ──────────────────────────────────────────────────────────────── */
 const PLANS = [
@@ -102,6 +105,58 @@ export default function Planos() {
     description: "Escolha o plano ideal para acompanhar a cobertura jornalística brasileira com análise de espectro político.",
   });
 
+  const { user } = useAuth();
+  const { data: billing } = trpc.billing.status.useQuery();
+  const [pending, setPending] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const checkout = trpc.billing.createCheckout.useMutation({
+    onSuccess: (res) => {
+      setPending(null);
+      if (res.configured && "url" in res && res.url) {
+        window.location.href = res.url;
+      } else {
+        setNotice(res.message || "Pagamentos em configuração.");
+      }
+    },
+    onError: () => {
+      setPending(null);
+      setNotice("Não foi possível iniciar o checkout. Tente novamente.");
+    },
+  });
+
+  const currentTier = billing?.tier ?? "free";
+
+  const handleCta = (planId: string) => {
+    setNotice(null);
+    if (planId === "free") {
+      window.location.href = "/";
+      return;
+    }
+    if (planId === "organizacao") {
+      window.location.href = "/?contato=organizacao";
+      return;
+    }
+    if (!user) {
+      setNotice("Faça login para assinar um plano.");
+      return;
+    }
+    if (planId === "estudante" || planId === "pro") {
+      setPending(planId);
+      checkout.mutate({ tier: planId });
+    }
+  };
+
+  /** Texto do botão por plano, considerando plano atual e estado de billing. */
+  const ctaLabel = (planId: string): string => {
+    if (currentTier === planId && planId !== "free") return "Plano atual";
+    if (planId === "free") return "Começar agora";
+    if (planId === "organizacao") return "Falar com vendas";
+    if (pending === planId) return "Redirecionando...";
+    if (billing && !billing.configured) return "Em breve";
+    return "Assinar";
+  };
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f2f2f2" }}>
       <Navbar />
@@ -141,6 +196,19 @@ export default function Planos() {
           </p>
         </div>
 
+        {/* Notice */}
+        {notice && (
+          <div style={{
+            maxWidth: "640px", margin: "0 auto 24px",
+            backgroundColor: "#fffbea", border: "1px solid #f0c040",
+            borderRadius: "6px", padding: "12px 16px",
+            fontSize: "13px", color: "#8a6d1a", fontFamily: "'Inter', sans-serif",
+            textAlign: "center",
+          }}>
+            {notice}
+          </div>
+        )}
+
         {/* Plans grid */}
         <div style={{
           display: "grid",
@@ -175,8 +243,18 @@ export default function Planos() {
                 </div>
               )}
 
-              {/* Coming soon badge */}
-              {plan.badge && (
+              {/* Status badge: plano atual, ou "Em breve" se billing não configurado */}
+              {currentTier === plan.id && plan.id !== "free" ? (
+                <div style={{
+                  position: "absolute", top: 12, right: 12,
+                  backgroundColor: plan.color, color: "#ffffff",
+                  fontSize: "10px", fontWeight: 700, fontFamily: "'Inter', sans-serif",
+                  textTransform: "uppercase", letterSpacing: "0.05em",
+                  padding: "3px 8px", borderRadius: "3px",
+                }}>
+                  Plano atual
+                </div>
+              ) : plan.badge && billing && !billing.configured ? (
                 <div style={{
                   position: "absolute", top: 12, right: 12,
                   backgroundColor: "#f0f0f0", color: "#888888",
@@ -186,7 +264,7 @@ export default function Planos() {
                 }}>
                   {plan.badge}
                 </div>
-              )}
+              ) : null}
 
               {/* Icon + name */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
@@ -239,25 +317,28 @@ export default function Planos() {
               </ul>
 
               {/* CTA */}
-              <button
-                style={{
-                  width: "100%", padding: "10px 16px",
-                  borderRadius: "5px", cursor: plan.id === "free" ? "pointer" : "default",
-                  fontSize: "13px", fontWeight: 700, fontFamily: "'Inter', sans-serif",
-                  border: plan.highlight ? "none" : `1px solid ${plan.color}40`,
-                  backgroundColor: plan.highlight ? plan.color : plan.bg,
-                  color: plan.highlight ? "#ffffff" : plan.color,
-                  transition: "opacity 0.15s ease",
-                  opacity: plan.id === "free" ? 1 : 0.7,
-                }}
-                onClick={() => {
-                  if (plan.id === "free") {
-                    window.location.href = "/";
-                  }
-                }}
-              >
-                {plan.id === "free" ? "Começar agora" : "Em breve"}
-              </button>
+              {(() => {
+                const isCurrent = currentTier === plan.id && plan.id !== "free";
+                const disabled = isCurrent || pending === plan.id;
+                return (
+                  <button
+                    disabled={disabled}
+                    style={{
+                      width: "100%", padding: "10px 16px",
+                      borderRadius: "5px", cursor: disabled ? "default" : "pointer",
+                      fontSize: "13px", fontWeight: 700, fontFamily: "'Inter', sans-serif",
+                      border: plan.highlight ? "none" : `1px solid ${plan.color}40`,
+                      backgroundColor: plan.highlight ? plan.color : plan.bg,
+                      color: plan.highlight ? "#ffffff" : plan.color,
+                      transition: "opacity 0.15s ease",
+                      opacity: disabled ? 0.55 : 1,
+                    }}
+                    onClick={() => handleCta(plan.id)}
+                  >
+                    {ctaLabel(plan.id)}
+                  </button>
+                );
+              })()}
             </div>
           ))}
         </div>

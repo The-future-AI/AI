@@ -17,6 +17,28 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  /** Plano de assinatura do usuário (controla acesso a recursos pagos). */
+  subscriptionTier: mysqlEnum("subscriptionTier", [
+    "free",
+    "estudante",
+    "pro",
+    "organizacao",
+  ])
+    .default("free")
+    .notNull(),
+  /** Situação da assinatura paga (sincronizada via webhook do provedor). */
+  subscriptionStatus: mysqlEnum("subscriptionStatus", [
+    "none",
+    "active",
+    "canceled",
+    "past_due",
+  ])
+    .default("none")
+    .notNull(),
+  /** Fim do período pago atual (informativo). */
+  subscriptionExpiresAt: timestamp("subscriptionExpiresAt"),
+  /** ID do cliente no provedor de pagamento (ex: Stripe customer id). */
+  stripeCustomerId: varchar("stripeCustomerId", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -24,6 +46,25 @@ export const users = mysqlTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+// Registros de assinatura vindos do provedor de pagamento (Stripe).
+export const subscriptions = mysqlTable("subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  provider: varchar("provider", { length: 32 }).default("stripe").notNull(),
+  providerCustomerId: varchar("providerCustomerId", { length: 128 }),
+  providerSubscriptionId: varchar("providerSubscriptionId", { length: 128 }),
+  tier: mysqlEnum("tier", ["free", "estudante", "pro", "organizacao"])
+    .default("free")
+    .notNull(),
+  status: varchar("status", { length: 32 }).default("active").notNull(),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;
 
 // Political spectrum enum
 export const spectrumEnum = mysqlEnum("spectrum", [

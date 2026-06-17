@@ -16,6 +16,7 @@ import {
 } from "@/lib/spectrum";
 import { ShareButtons } from "@/components/ShareButtons";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { PaywallCard } from "@/components/PaywallCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { formatDistanceToNow, format } from "date-fns";
@@ -554,7 +555,7 @@ export default function TopicDetail() {
         {/* ═══════════════════════════════════════════════════════════════════
             SEÇÃO 5 — Diferenças de enquadramento (LLM + comparação de manchetes)
         ═══════════════════════════════════════════════════════════════════ */}
-        {(analysisLoading || (analysis?.framingDifferences && analysis.framingDifferences.length > 0) || headlinesBySpectrum.length >= 2) && (
+        {(analysisLoading || (analysis?.framingDifferences && analysis.framingDifferences.length > 0) || analysis?.locked?.framingAnalysis || headlinesBySpectrum.length >= 2) && (
           <Card>
             <SectionLabel icon={<Scale size={14} />} label="Diferenças de enquadramento" />
 
@@ -564,6 +565,13 @@ export default function TopicDetail() {
                 {[80, 70, 65].map((w, i) => (
                   <Skeleton key={i} style={{ height: 60, borderRadius: 4 }} />
                 ))}
+              </div>
+            ) : analysis?.locked?.framingAnalysis ? (
+              <div style={{ marginBottom: headlinesBySpectrum.length >= 2 ? "20px" : 0 }}>
+                <PaywallCard
+                  title="Veja como cada veículo enquadrou a notícia"
+                  description="A análise de enquadramento por veículo — quem enfatizou o quê — está disponível nos planos Estudante e Pro."
+                />
               </div>
             ) : analysis?.framingDifferences && analysis.framingDifferences.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: headlinesBySpectrum.length >= 2 ? "20px" : 0 }}>
@@ -778,6 +786,13 @@ export default function TopicDetail() {
         {/* LLM context */}
         {analysisLoading ? (
           <AnalysisSkeleton />
+        ) : analysis?.locked?.contextSection ? (
+          <div style={{ marginTop: "16px" }}>
+            <PaywallCard
+              title="Contexto histórico e legal"
+              description="O contexto que situa a notícia (casos anteriores, base legal, panorama) é um recurso de assinante."
+            />
+          </div>
         ) : analysis?.context ? (
           <Card style={{ marginTop: "16px" }}>
             <SectionLabel icon={<BookOpen size={14} />} label="Contexto" />

@@ -43,6 +43,13 @@
       "when": 1781699161973,
       "tag": "0005_rapid_la_nuit",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1781700325535,
+      "tag": "0006_spooky_loa",
+      "breakpoints": true
     }
   ]
 }

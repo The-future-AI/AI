@@ -8,8 +8,10 @@ import {
   mediaOutlets,
   scrapeJobs,
   newsletterSubscribers,
+  subscriptions,
   type StructuredAnalysis,
 } from "../drizzle/schema";
+import type { Tier } from "@shared/entitlements";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -72,6 +74,53 @@ export async function getUserByOpenId(openId: string) {
     .where(eq(users.openId, openId))
     .limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+// ─── Subscriptions / billing ───────────────────────────────────────────────────
+
+/** Atualiza o plano e situação de assinatura de um usuário. */
+export async function setUserSubscription(
+  openId: string,
+  data: {
+    tier: Tier;
+    status: "none" | "active" | "canceled" | "past_due";
+    expiresAt?: Date | null;
+    stripeCustomerId?: string | null;
+  },
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const set: Record<string, unknown> = {
+    subscriptionTier: data.tier,
+    subscriptionStatus: data.status,
+  };
+  if (data.expiresAt !== undefined) set.subscriptionExpiresAt = data.expiresAt;
+  if (data.stripeCustomerId !== undefined)
+    set.stripeCustomerId = data.stripeCustomerId;
+  await db.update(users).set(set).where(eq(users.openId, openId));
+  return true;
+}
+
+/** Registra (ou atualiza) o vínculo com a assinatura no provedor. */
+export async function recordSubscription(data: {
+  userId: number;
+  providerCustomerId?: string | null;
+  providerSubscriptionId?: string | null;
+  tier: Tier;
+  status: string;
+  currentPeriodEnd?: Date | null;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(subscriptions).values({
+    userId: data.userId,
+    provider: "stripe",
+    providerCustomerId: data.providerCustomerId ?? null,
+    providerSubscriptionId: data.providerSubscriptionId ?? null,
+    tier: data.tier,
+    status: data.status,
+    currentPeriodEnd: data.currentPeriodEnd ?? null,
+  });
 }
 
 // ─── Topics ──────────────────────────────────────────────────────────────────
