@@ -14,6 +14,8 @@ import {
   saveTopicAnalysis,
   getBlindspotTopics,
   getTrendingTopics,
+  getElectionTopics,
+  getTopicTimeline,
   getArticlesByTopic,
   searchArticles,
   getAllOutlets,
@@ -190,6 +192,24 @@ Responda APENAS com o JSON, sem markdown.`;
       .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
       .query(async ({ input }) => {
         return getTrendingTopics(input.limit);
+      }),
+
+    election: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(30).default(8) }))
+      .query(async ({ input }) => {
+        return getElectionTopics(input.limit);
+      }),
+
+    /** Linha do tempo da história. Recurso pago — gated por plano no servidor. */
+    getTimeline: publicProcedure
+      .input(z.object({ topicId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const tier = effectiveTier(ctx.user);
+        if (!hasFeature(tier, "timeline")) {
+          return { locked: true as const, tier, items: [] };
+        }
+        const items = await getTopicTimeline(input.topicId);
+        return { locked: false as const, tier, items };
       }),
   }),
 

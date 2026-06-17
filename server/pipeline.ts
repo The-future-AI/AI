@@ -11,6 +11,7 @@ import { scrapeAllOutlets } from "./scraper";
 import {
   computeSpectrumStats,
   detectBlindspot,
+  isElectionRelated,
   type Spectrum,
 } from "./analysis";
 
@@ -43,6 +44,10 @@ interface TopicGroup {
   summary: string;
   category: Category;
   articleIndices: number[];
+  candidates: string[];
+  parties: string[];
+  institutions: string[];
+  isElection: boolean;
 }
 
 async function classifyArticles(
@@ -165,9 +170,11 @@ Crie grupos temáticos. Cada grupo deve:
 - Ter um resumo de 2-3 frases explicando o evento/assunto
 - Incluir os índices dos artigos que pertencem ao grupo
 - Ter uma categoria temática
+- Extrair entidades mencionadas: candidates (nomes de candidatos/políticos), parties (partidos/siglas), institutions (instituições como TSE, STF, Câmara). Listas vazias se não houver.
+- isElection: true se o assunto tem relação com eleições, candidaturas, campanha, urnas, TSE ou propaganda eleitoral; senão false.
 
 Responda APENAS com JSON válido:
-{"groups": [{"title": "...", "summary": "...", "category": "politica|economia|internacional|esporte|tecnologia|geral", "articleIndices": [0, 1, 2]}]}`;
+{"groups": [{"title": "...", "summary": "...", "category": "politica|economia|internacional|esporte|tecnologia|geral", "articleIndices": [0, 1, 2], "candidates": ["..."], "parties": ["..."], "institutions": ["..."], "isElection": false}]}`;
 
   try {
     const response = await invokeLLM({
@@ -209,8 +216,21 @@ Responda APENAS com JSON válido:
                       type: "array",
                       items: { type: "number" },
                     },
+                    candidates: { type: "array", items: { type: "string" } },
+                    parties: { type: "array", items: { type: "string" } },
+                    institutions: { type: "array", items: { type: "string" } },
+                    isElection: { type: "boolean" },
                   },
-                  required: ["title", "summary", "category", "articleIndices"],
+                  required: [
+                    "title",
+                    "summary",
+                    "category",
+                    "articleIndices",
+                    "candidates",
+                    "parties",
+                    "institutions",
+                    "isElection",
+                  ],
                   additionalProperties: false,
                 },
               },
@@ -236,6 +256,10 @@ Responda APENAS com JSON válido:
       summary: a.summary || a.title,
       category: "geral" as Category,
       articleIndices: [i],
+      candidates: [],
+      parties: [],
+      institutions: [],
+      isElection: isElectionRelated(`${a.title} ${a.summary || ""}`),
     }));
   }
 }
@@ -387,6 +411,14 @@ export async function runPipeline(): Promise<{
         isBlindspot: blindspot.isBlindspot,
         blindspotSpectrum: blindspot.spectrum || null,
         trending: stats.total >= 3,
+        entities: {
+          candidates: group.candidates ?? [],
+          parties: group.parties ?? [],
+          institutions: group.institutions ?? [],
+        },
+        isElection:
+          group.isElection ||
+          isElectionRelated(`${group.title} ${group.summary}`),
         publishedAt: groupArticles[0]?.publishedAt || new Date(),
       });
 

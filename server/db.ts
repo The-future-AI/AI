@@ -212,6 +212,40 @@ export async function getTrendingTopics(limit = 5) {
     .limit(limit);
 }
 
+/** Tópicos marcados como eleitorais — alimenta a seção "Eleições" da home. */
+export async function getElectionTopics(limit = 12) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(topics)
+    .where(eq(topics.isElection, true))
+    .orderBy(desc(topics.totalSources), desc(topics.publishedAt))
+    .limit(limit);
+}
+
+/**
+ * Linha do tempo de um tópico: cada artigo em ordem cronológica crescente,
+ * com veículo e espectro — "como a história se desenvolveu". Recurso pago.
+ */
+export async function getTopicTimeline(topicId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      title: articles.title,
+      url: articles.url,
+      spectrum: articles.spectrum,
+      publishedAt: articles.publishedAt,
+      outletName: mediaOutlets.name,
+      outletSlug: mediaOutlets.slug,
+    })
+    .from(articles)
+    .leftJoin(mediaOutlets, eq(articles.outletId, mediaOutlets.id))
+    .where(eq(articles.topicId, topicId))
+    .orderBy(articles.publishedAt);
+}
+
 // ─── Articles ────────────────────────────────────────────────────────────────
 
 export async function getArticlesByTopic(topicId: number) {

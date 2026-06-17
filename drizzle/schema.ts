@@ -157,6 +157,13 @@ export interface StructuredAnalysis {
   blindspotNote: string | null;
 }
 
+/** Entidades extraídas de um tópico (foco eleitoral). */
+export interface TopicEntities {
+  candidates: string[];
+  parties: string[];
+  institutions: string[];
+}
+
 // News topics/events (grouped stories)
 export const topics = mysqlTable("topics", {
   id: int("id").autoincrement().primaryKey(),
@@ -193,6 +200,10 @@ export const topics = mysqlTable("topics", {
    * reutilizada, evitando uma chamada de LLM a cada visualização da página.
    */
   structuredAnalysis: json("structuredAnalysis").$type<StructuredAnalysis>(),
+  /** Entidades mencionadas (candidatos, partidos, instituições) — foco eleitoral. */
+  entities: json("entities").$type<TopicEntities>(),
+  /** Marca tópicos relacionados às eleições (seção dedicada na home). */
+  isElection: boolean("isElection").default(false).notNull(),
   publishedAt: timestamp("publishedAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

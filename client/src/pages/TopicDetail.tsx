@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, ExternalLink, Eye, Clock, Newspaper, AlertCircle, BookOpen, Scale, Globe, CheckCircle2, Layers } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye, Clock, Newspaper, AlertCircle, BookOpen, Scale, Globe, CheckCircle2, Layers, Vote, CalendarClock } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Navbar } from "@/components/Navbar";
 import SpectrumBar from "@/components/SpectrumBar";
@@ -259,6 +259,10 @@ export default function TopicDetail() {
     { topicId },
     { enabled: !!topicId && !!data }
   );
+  const { data: timeline } = trpc.topics.getTimeline.useQuery(
+    { topicId },
+    { enabled: !!topicId && !!data }
+  );
 
   useDocumentMeta({
     title: data?.topic?.title,
@@ -399,6 +403,17 @@ export default function TopicDetail() {
                 Ponto Cego
               </span>
             )}
+            {topic.isElection && (
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "4px",
+                fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+                letterSpacing: "0.05em", color: "#ffffff", backgroundColor: "#7c3aed",
+                padding: "2px 8px", borderRadius: "3px", fontFamily: "'Inter', sans-serif",
+              }}>
+                <Vote size={10} />
+                Eleições 2026
+              </span>
+            )}
           </div>
 
           {/* Title */}
@@ -425,6 +440,41 @@ export default function TopicDetail() {
               {format(publishedAt, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
             </span>
           </div>
+
+          {/* Entidades (foco eleitoral) */}
+          {(() => {
+            const ents = topic.entities;
+            const groups: { label: string; items: string[]; color: string }[] = [
+              { label: "Candidatos", items: ents?.candidates ?? [], color: "#7c3aed" },
+              { label: "Partidos", items: ents?.parties ?? [], color: "#2563a8" },
+              { label: "Instituições", items: ents?.institutions ?? [], color: "#1a7a4a" },
+            ].filter((g) => g.items.length > 0);
+            if (groups.length === 0) return null;
+            return (
+              <div style={{ marginBottom: "20px" }}>
+                {groups.map((g) => (
+                  <div key={g.label} style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", marginBottom: "6px" }}>
+                    <span style={{
+                      fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+                      letterSpacing: "0.05em", color: "#aaaaaa", fontFamily: "'Inter', sans-serif",
+                      minWidth: "82px",
+                    }}>
+                      {g.label}
+                    </span>
+                    {g.items.slice(0, 8).map((it) => (
+                      <span key={it} style={{
+                        fontSize: "11.5px", fontWeight: 600, color: g.color,
+                        backgroundColor: `${g.color}12`, border: `1px solid ${g.color}30`,
+                        padding: "2px 8px", borderRadius: "3px", fontFamily: "'Inter', sans-serif",
+                      }}>
+                        {it}
+                      </span>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Spectrum bar */}
           <div>
@@ -670,6 +720,57 @@ export default function TopicDetail() {
                   ))}
                 </div>
               </>
+            )}
+          </Card>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            SEÇÃO 5b — Linha do tempo (como a história se desenvolveu) — pago
+        ═══════════════════════════════════════════════════════════════════ */}
+        {timeline && (timeline.locked || timeline.items.length > 0) && (
+          <Card>
+            <SectionLabel icon={<CalendarClock size={14} />} label="Linha do tempo" />
+            {timeline.locked ? (
+              <PaywallCard
+                title="Veja como a história se desenvolveu"
+                description="A linha do tempo cronológica — qual veículo noticiou primeiro e como a cobertura evoluiu — é um recurso de assinante."
+              />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                {timeline.items.map((item, i) => {
+                  const color = SPECTRUM_COLORS[item.spectrum || "centro"] || "#888";
+                  const at = item.publishedAt instanceof Date ? item.publishedAt : new Date(item.publishedAt);
+                  return (
+                    <a
+                      key={i}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "flex", gap: "12px", alignItems: "flex-start",
+                        padding: "10px 4px", textDecoration: "none",
+                        borderBottom: i < timeline.items.length - 1 ? "1px solid #f3f1ec" : "none",
+                      }}
+                    >
+                      <div style={{
+                        fontSize: "11px", color: "#999", fontFamily: "'Inter', sans-serif",
+                        whiteSpace: "nowrap", minWidth: "92px", paddingTop: "2px",
+                      }}>
+                        {format(at, "d MMM, HH:mm", { locale: ptBR })}
+                      </div>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: color, flexShrink: 0, marginTop: "5px" }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, color, fontFamily: "'Inter', sans-serif", marginBottom: "1px" }}>
+                          {item.outletName}
+                        </div>
+                        <div style={{ fontSize: "13px", color: "#333", fontFamily: "'Inter', sans-serif", lineHeight: 1.4 }}>
+                          {item.title}
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
             )}
           </Card>
         )}

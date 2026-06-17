@@ -138,3 +138,39 @@ export function leanLabel(lean: number): LeanLabel {
   if (lean < 60) return "centro-direita";
   return "direita";
 }
+
+/**
+ * Termos que sinalizam conteúdo eleitoral. Usados como fallback/​reforço da
+ * detecção feita pelo LLM, para marcar tópicos da seção "Eleições".
+ * Mantidos em minúsculas e sem acento problemático para casar por prefixo.
+ */
+export const ELECTION_KEYWORDS = [
+  "elei", // eleição, eleições, eleitoral, eleitor
+  "candidat", // candidato, candidatura
+  "urna",
+  "tse",
+  "tre ", // tribunal regional eleitoral
+  "voto",
+  "votação",
+  "votacao",
+  "segundo turno",
+  "primeiro turno",
+  "propaganda eleitoral",
+  "campanha eleitoral",
+  "pesquisa eleitoral",
+  "boca de urna",
+  "coligação",
+  "coligacao",
+  "ficha limpa",
+  "registro de candidatura",
+];
+
+/**
+ * Detecta se um texto trata de eleições, por casamento de palavras-chave.
+ * É proposital​mente abrangente — a curadoria fina fica para o admin.
+ */
+export function isElectionRelated(text: string | null | undefined): boolean {
+  if (!text) return false;
+  const t = text.toLowerCase();
+  return ELECTION_KEYWORDS.some((kw) => t.includes(kw));
+}

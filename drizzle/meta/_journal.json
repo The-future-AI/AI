@@ -50,6 +50,13 @@
       "when": 1781700325535,
       "tag": "0006_spooky_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1781701716364,
+      "tag": "0007_lonely_blazing_skull",
+      "breakpoints": true
     }
   ]
 }

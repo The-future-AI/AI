@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Eye, Newspaper, RefreshCw } from "lucide-react";
+import { Eye, Newspaper, RefreshCw, Vote } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Navbar } from "@/components/Navbar";
 import { TopicCard } from "@/components/TopicCard";
@@ -317,6 +317,14 @@ export default function Home() {
     search: searchQuery || undefined,
   });
 
+  // Seção "Eleições 2026" — só aparece na visão geral (sem busca/categoria)
+  const { data: electionTopics } = trpc.topics.election.useQuery({ limit: 6 });
+  const showElection =
+    activeCategory === "todos" &&
+    !searchQuery &&
+    page === 0 &&
+    (electionTopics?.length ?? 0) > 0;
+
   // Client-side sort (server returns by publishedAt desc by default)
   const sortTopics = (items: Topic[]) => {
     if (sortBy === "sources") return [...items].sort((a, b) => b.totalSources - a.totalSources);
@@ -440,6 +448,58 @@ export default function Home() {
 
           {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
           <div>
+            {/* Eleições 2026 */}
+            {showElection && electionTopics && (
+              <div style={{
+                backgroundColor: "#faf7ff",
+                border: "1px solid #e4d8fb",
+                borderRadius: "6px",
+                padding: "16px 18px",
+                marginBottom: "20px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                  <Vote size={15} style={{ color: "#7c3aed" }} />
+                  <span style={{
+                    fontSize: "12px", fontWeight: 700, textTransform: "uppercase",
+                    letterSpacing: "0.07em", color: "#7c3aed", fontFamily: "'Inter', sans-serif",
+                  }}>
+                    Eleições 2026
+                  </span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {electionTopics.slice(0, 6).map((t, i) => (
+                    <Link key={t.id} href={`/topico/${t.id}`}>
+                      <div style={{
+                        display: "flex", alignItems: "flex-start", gap: "10px",
+                        padding: "9px 0",
+                        borderBottom: i < Math.min(electionTopics.length, 6) - 1 ? "1px solid #efe7fc" : "none",
+                        cursor: "pointer",
+                      }}>
+                        <span style={{
+                          fontSize: "11px", color: "#b9a3e0", fontFamily: "'Inter', sans-serif",
+                          fontWeight: 700, minWidth: "16px", paddingTop: "1px",
+                        }}>
+                          {i + 1}
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{
+                            fontSize: "13.5px", fontWeight: 600, color: "#1a1a1a",
+                            fontFamily: "'Inter', sans-serif", lineHeight: 1.35, margin: 0,
+                            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                          }}>
+                            {t.title}
+                          </p>
+                          <span style={{ fontSize: "11px", color: "#999", fontFamily: "'Inter', sans-serif" }}>
+                            {t.totalSources} {t.totalSources === 1 ? "fonte" : "fontes"}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Featured card */}
             {isLoading ? (
               <div style={{ borderRadius: 4, overflow: "hidden", marginBottom: 20 }}>
