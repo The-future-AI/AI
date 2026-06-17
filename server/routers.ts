@@ -6,6 +6,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import {
   getTopics,
   getTopicById,
+  saveTopicAnalysis,
   getBlindspotTopics,
   getTrendingTopics,
   getArticlesByTopic,
@@ -65,6 +66,13 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const topic = await getTopicById(input.topicId);
         if (!topic) return null;
+
+        // Cache: análise é determinística por tópico — gera uma vez e reaproveita,
+        // evitando uma chamada de LLM a cada visualização da página.
+        if (topic.structuredAnalysis) {
+          return topic.structuredAnalysis;
+        }
+
         const articles = await getArticlesByTopic(input.topicId);
         if (articles.length === 0) return null;
 
@@ -105,13 +113,16 @@ Responda APENAS com o JSON, sem markdown.`;
           const rawContent = response.choices[0]?.message?.content;
           const content = typeof rawContent === "string" ? rawContent : null;
           if (!content) return null;
-          return JSON.parse(content) as {
+          const analysis = JSON.parse(content) as {
             neutralSummary: string;
             commonFacts: string[];
             framingDifferences: { outlet: string; spectrum: string; framing: string }[];
             context: string;
             blindspotNote: string | null;
           };
+          // Grava no cache para as próximas visualizações (best-effort).
+          await saveTopicAnalysis(input.topicId, analysis);
+          return analysis;
         } catch (e) {
           console.error("[LLM] Structured analysis error:", e);
           return null;

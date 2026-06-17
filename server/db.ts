@@ -8,6 +8,7 @@ import {
   mediaOutlets,
   scrapeJobs,
   newsletterSubscribers,
+  type StructuredAnalysis,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -125,6 +126,19 @@ export async function getTopicById(id: number) {
     .where(eq(topics.id, id))
     .limit(1);
   return result[0] || null;
+}
+
+/** Persiste o cache da análise estruturada de um tópico. */
+export async function saveTopicAnalysis(
+  topicId: number,
+  analysis: StructuredAnalysis
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(topics)
+    .set({ structuredAnalysis: analysis })
+    .where(eq(topics.id, topicId));
 }
 
 export async function getBlindspotTopics(limit = 10) {

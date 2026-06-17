@@ -29,6 +29,13 @@
       "when": 1781466778603,
       "tag": "0003_pale_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1781697354323,
+      "tag": "0004_lean_mantis",
+      "breakpoints": true
     }
   ]
 }

@@ -84,6 +84,15 @@ export const mediaOutlets = mysqlTable("media_outlets", {
 export type MediaOutlet = typeof mediaOutlets.$inferSelect;
 export type InsertMediaOutlet = typeof mediaOutlets.$inferInsert;
 
+/** Estrutura da análise jornalística gerada por LLM e cacheada por tópico. */
+export interface StructuredAnalysis {
+  neutralSummary: string;
+  commonFacts: string[];
+  framingDifferences: { outlet: string; spectrum: string; framing: string }[];
+  context: string;
+  blindspotNote: string | null;
+}
+
 // News topics/events (grouped stories)
 export const topics = mysqlTable("topics", {
   id: int("id").autoincrement().primaryKey(),
@@ -114,6 +123,12 @@ export const topics = mysqlTable("topics", {
   isBlindspot: boolean("isBlindspot").default(false).notNull(),
   blindspotSpectrum: varchar("blindspotSpectrum", { length: 32 }),
   trending: boolean("trending").default(false).notNull(),
+  /**
+   * Cache da análise estruturada gerada por LLM (resumo neutro, fatos em comum,
+   * diferenças de enquadramento, contexto). Calculada uma vez por tópico e
+   * reutilizada, evitando uma chamada de LLM a cada visualização da página.
+   */
+  structuredAnalysis: json("structuredAnalysis").$type<StructuredAnalysis>(),
   publishedAt: timestamp("publishedAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
