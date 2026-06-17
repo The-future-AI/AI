@@ -76,6 +76,29 @@ export const mediaOutlets = mysqlTable("media_outlets", {
   foundedYear: int("foundedYear"),
   /** Descrição curta da linha editorial. */
   description: text("description"),
+  /**
+   * Categoria do veículo na base de fontes (estrutura recomendada para o
+   * produto): grande imprensa, regional, pública/institucional, nativo
+   * digital independente, agência de checagem ou veículo internacional.
+   */
+  category: mysqlEnum("category", [
+    "mainstream",
+    "regional",
+    "publica",
+    "independente",
+    "checagem",
+    "internacional",
+  ])
+    .default("mainstream")
+    .notNull(),
+  /** Abrangência geográfica (ex: "Nacional", "SP", "DF", "Internacional"). */
+  region: varchar("region", { length: 64 }).default("Nacional").notNull(),
+  /** Idioma principal do veículo (ex: "pt-BR", "en", "es"). */
+  language: varchar("language", { length: 16 }).default("pt-BR").notNull(),
+  /** Status de paywall: livre, parcial ou por assinatura. */
+  paywall: mysqlEnum("paywall", ["livre", "parcial", "assinatura"])
+    .default("livre")
+    .notNull(),
   country: varchar("country", { length: 8 }).default("BR").notNull(),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

@@ -29,6 +29,10 @@ export async function seedOutlets(): Promise<{ upserted: number }> {
         ownership: o.ownership,
         foundedYear: o.foundedYear,
         description: o.description,
+        category: o.category,
+        region: o.region,
+        language: o.language,
+        paywall: o.paywall,
         country: "BR",
         active: true,
       })
@@ -41,6 +45,10 @@ export async function seedOutlets(): Promise<{ upserted: number }> {
           ownership: o.ownership,
           foundedYear: o.foundedYear,
           description: o.description,
+          category: o.category,
+          region: o.region,
+          language: o.language,
+          paywall: o.paywall,
           active: true,
         },
       });

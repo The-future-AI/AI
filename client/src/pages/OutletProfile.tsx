@@ -1,5 +1,5 @@
 import { useParams, Link } from "wouter";
-import { ArrowLeft, ExternalLink, Calendar, Building2, Rss, AlertCircle, Newspaper } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Building2, Rss, AlertCircle, Newspaper, Tag, MapPin, Globe, Lock } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Navbar } from "@/components/Navbar";
 import { OutletLogo } from "@/components/OutletLogo";
@@ -35,6 +35,37 @@ function SectionLabel({ label }: { label: string }) {
     }}>
       {label}
     </p>
+  );
+}
+
+const CATEGORY_LABELS_OUTLET: Record<string, string> = {
+  mainstream: "Grande imprensa",
+  regional: "Regional",
+  publica: "Pública / institucional",
+  independente: "Nativo digital independente",
+  checagem: "Agência de checagem",
+  internacional: "Internacional",
+};
+
+const PAYWALL_LABELS: Record<string, string> = {
+  livre: "Acesso livre",
+  parcial: "Acesso parcial",
+  assinatura: "Por assinatura",
+};
+
+function MetaItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+      <span style={{ color: "#888888", flexShrink: 0, marginTop: "2px", display: "flex" }}>{icon}</span>
+      <div>
+        <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#aaaaaa", fontFamily: "'Inter', sans-serif", marginBottom: "2px" }}>
+          {label}
+        </div>
+        <div style={{ fontSize: "14px", color: "#222222", fontFamily: "'Inter', sans-serif", fontWeight: 500 }}>
+          {value}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -192,32 +223,40 @@ export default function OutletProfile() {
             gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
             gap: "16px",
           }}>
+            {staticOutlet?.category && (
+              <MetaItem
+                icon={<Tag size={16} />}
+                label="Categoria"
+                value={CATEGORY_LABELS_OUTLET[staticOutlet.category] || staticOutlet.category}
+              />
+            )}
+
+            {staticOutlet?.region && (
+              <MetaItem icon={<MapPin size={16} />} label="Abrangência" value={staticOutlet.region} />
+            )}
+
+            {staticOutlet?.language && (
+              <MetaItem
+                icon={<Globe size={16} />}
+                label="Idioma"
+                value={staticOutlet.language === "pt-BR" ? "Português" : staticOutlet.language === "en" ? "Inglês" : staticOutlet.language === "es" ? "Espanhol" : staticOutlet.language}
+              />
+            )}
+
+            {staticOutlet?.paywall && (
+              <MetaItem
+                icon={<Lock size={16} />}
+                label="Acesso"
+                value={PAYWALL_LABELS[staticOutlet.paywall] || staticOutlet.paywall}
+              />
+            )}
+
             {staticOutlet?.foundedYear && (
-              <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                <Calendar size={16} style={{ color: "#888888", flexShrink: 0, marginTop: "2px" }} />
-                <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#aaaaaa", fontFamily: "'Inter', sans-serif", marginBottom: "2px" }}>
-                    Fundado em
-                  </div>
-                  <div style={{ fontSize: "14px", color: "#222222", fontFamily: "'Inter', sans-serif", fontWeight: 500 }}>
-                    {staticOutlet.foundedYear}
-                  </div>
-                </div>
-              </div>
+              <MetaItem icon={<Calendar size={16} />} label="Fundado em" value={String(staticOutlet.foundedYear)} />
             )}
 
             {staticOutlet?.ownership && (
-              <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                <Building2 size={16} style={{ color: "#888888", flexShrink: 0, marginTop: "2px" }} />
-                <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#aaaaaa", fontFamily: "'Inter', sans-serif", marginBottom: "2px" }}>
-                    Propriedade
-                  </div>
-                  <div style={{ fontSize: "14px", color: "#222222", fontFamily: "'Inter', sans-serif", fontWeight: 500 }}>
-                    {staticOutlet.ownership}
-                  </div>
-                </div>
-              </div>
+              <MetaItem icon={<Building2 size={16} />} label="Propriedade" value={staticOutlet.ownership} />
             )}
 
             {staticOutlet?.feeds && staticOutlet.feeds.length > 0 && (
