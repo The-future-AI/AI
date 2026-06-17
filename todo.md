@@ -139,3 +139,10 @@
 - [x] Texto "17 veículos" na Metodologia agora dinâmico via OUTLETS.length (46)
 - [x] Zero erros TypeScript — build limpo
 - [x] 26 testes passando (pipeline, analysis, auth)
+
+## Sprint 11 — Bug Fix: Feed de Notícias (Implementado)
+- [x] Diagnóstico: erro "Incorrect arguments to LIMIT" no TiDB com drizzle execute()
+- [x] Fix: drizzle inicializado com `mode: 'default'` para usar query() em vez de execute()
+- [x] Fix: getTopics() agora força limit e offset como inteiros com Math.floor(Number(...))
+- [x] Feed principal agora exibe 97 tópicos corretamente
+- [x] Zero erros TypeScript após o fix

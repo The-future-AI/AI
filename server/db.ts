@@ -19,7 +19,10 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      // mode: 'default' forces drizzle to use query() instead of execute()
+      // which is required for TiDB/PlanetScale that don't support LIMIT as
+      // a prepared-statement bind parameter.
+      _db = drizzle(process.env.DATABASE_URL, { mode: 'default' });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -153,12 +156,15 @@ export async function getTopics(opts: {
     conditions.push(like(topics.title, `%${opts.search}%`));
   }
 
+  const limitVal = Math.floor(Number(opts.limit) || 20);
+  const offsetVal = Math.floor(Number(opts.offset) || 0);
+
   const query = db
     .select()
     .from(topics)
     .orderBy(desc(topics.totalSources), desc(topics.publishedAt))
-    .limit(opts.limit || 20)
-    .offset(opts.offset || 0);
+    .limit(limitVal)
+    .offset(offsetVal);
 
   if (conditions.length > 0) {
     return query.where(and(...conditions));
